@@ -86,10 +86,14 @@ function MobileHeader({
   title,
   onBack,
   badge,
+  onProfile,
+  profileLabel,
 }: {
   title?: string;
   onBack?: () => void;
   badge?: number;
+  onProfile?: () => void;
+  profileLabel?: string;
 }) {
   return (
     <div
@@ -97,11 +101,22 @@ function MobileHeader({
       style={{ background: BROWN, minHeight: 56 }}
     >
       <div className="w-8">
-        {onBack && (
-          <button onClick={onBack} style={{ color: IVORY }}>
+        {onBack ? (
+          <button onClick={onBack} style={{ color: IVORY, background: "transparent", border: "none", cursor: "pointer", padding: 0 }}>
             <ArrowLeft size={20} />
           </button>
-        )}
+        ) : onProfile ? (
+          <button
+            onClick={onProfile}
+            style={{ background: "rgba(255,255,255,0.13)", border: "none", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 }}
+          >
+            {profileLabel ? (
+              <span style={{ fontSize: 10, fontWeight: 700, color: BEIGE, fontFamily: "Inter, sans-serif", lineHeight: 1 }}>{profileLabel}</span>
+            ) : (
+              <User size={15} color={BEIGE} />
+            )}
+          </button>
+        ) : null}
       </div>
       <div className="flex flex-col items-center">
         <span
@@ -191,27 +206,46 @@ function GoldButton({
   );
 }
 
-// ── Screen 1: Guest Portal Home ──────────────────────────────────────────────
+// ── Guest auth types ─────────────────────────────────────────────────────────
+type MockGuest = {
+  room: string; phone: string; name: string;
+  checkIn: string; checkOut: string; nights: number;
+  type: string; balance: number; reservation: string; points: number;
+};
+
+// ── Screen 1: Guest Portal Home (authenticated) ──────────────────────────────
 const serviceMenu = [
   { icon: UtensilsCrossed, label: "Food &\nBeverage", screen: "roomservice" },
-  { icon: BedDouble, label: "Housekeeping", screen: "none" },
+  { icon: BedDouble, label: "Housekeeping", screen: "tracker" },
   { icon: MessageSquareWarning, label: "Complaints", screen: "complaint" },
   { icon: PhoneCall, label: "Contact\nReception", screen: "chat" },
-  { icon: MapPin, label: "Concierge\n& Info", screen: "none" },
-  { icon: CalendarDays, label: "My Stay", screen: "bill" },
+  { icon: MapPin, label: "Concierge\n& Info", screen: "chat" },
+  { icon: CalendarDays, label: "My Bill", screen: "bill" },
 ];
 
-function GuestPortalHome({ navigate }: { navigate: (s: string) => void }) {
+function GuestPortalHome({
+  navigate,
+  guest,
+  onSignOut,
+}: {
+  navigate: (s: string) => void;
+  guest: MockGuest;
+  onSignOut: () => void;
+}) {
+  const initials = guest.name
+    .split(" ")
+    .filter((w) => /[A-Z]/.test(w[0] ?? ""))
+    .map((w) => w[0])
+    .slice(-2)
+    .join("");
   return (
     <PhoneFrame title="B5-01 Guest Portal Home">
-      <MobileHeader badge={2} />
+      <MobileHeader badge={2} onProfile={onSignOut} profileLabel={initials || undefined} />
       <div className="flex-1 overflow-y-auto" style={{ background: IVORY }}>
         {/* Hero greeting */}
         <div
           className="px-5 pt-5 pb-6"
-          style={{
-            background: `linear-gradient(135deg, ${BROWN} 0%, #6D4C41 100%)`,
-          }}
+          style={{ background: `linear-gradient(135deg, ${BROWN} 0%, #6D4C41 100%)` }}
         >
           <p className="text-xs font-medium mb-1" style={{ color: BEIGE, fontFamily: "Inter, sans-serif", letterSpacing: "0.1em" }}>
             WELCOME BACK
@@ -220,10 +254,10 @@ function GuestPortalHome({ navigate }: { navigate: (s: string) => void }) {
             className="font-bold mb-0.5"
             style={{ color: WHITE, fontFamily: "Inter, sans-serif", fontSize: 22 }}
           >
-            Mr. Chidi Okafor
+            {guest.name}
           </h1>
           <p className="text-sm" style={{ color: BEIGE, fontFamily: "Inter, sans-serif" }}>
-            Suite 310 · Check-out: Jul 3, 2025
+            Room {guest.room} · {guest.type} · Check-out: {guest.checkOut}
           </p>
           <div
             className="mt-4 rounded-xl p-3 flex items-center gap-3"
@@ -231,7 +265,7 @@ function GuestPortalHome({ navigate }: { navigate: (s: string) => void }) {
           >
             <Star size={16} fill={GOLD} stroke="none" />
             <span className="text-xs font-medium" style={{ color: BEIGE, fontFamily: "Inter, sans-serif" }}>
-              Gold Member · 4,820 Reward Points
+              Gold Member · {guest.points.toLocaleString()} Reward Points
             </span>
           </div>
         </div>
@@ -239,27 +273,18 @@ function GuestPortalHome({ navigate }: { navigate: (s: string) => void }) {
         {/* Quick status strip */}
         <div
           className="mx-4 -mt-4 rounded-xl p-4 flex justify-between"
-          style={{
-            background: WHITE,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-          }}
+          style={{ background: WHITE, boxShadow: "0 4px 12px rgba(0,0,0,0.10)" }}
         >
           {[
-            { label: "Check-in", value: "Jun 29" },
-            { label: "Nights", value: "4" },
-            { label: "Balance", value: "₦0" },
+            { label: "Check-in", value: guest.checkIn },
+            { label: "Nights", value: String(guest.nights) },
+            { label: "Balance", value: guest.balance > 0 ? `₦${guest.balance.toLocaleString()}` : "₦0" },
           ].map((item) => (
             <div key={item.label} className="flex flex-col items-center">
-              <span
-                className="font-bold"
-                style={{ color: CHARCOAL, fontFamily: "Inter, sans-serif", fontSize: 16 }}
-              >
+              <span className="font-bold" style={{ color: CHARCOAL, fontFamily: "Inter, sans-serif", fontSize: 16 }}>
                 {item.value}
               </span>
-              <span
-                className="text-xs mt-0.5"
-                style={{ color: GRAY, fontFamily: "Inter, sans-serif" }}
-              >
+              <span className="text-xs mt-0.5" style={{ color: GRAY, fontFamily: "Inter, sans-serif" }}>
                 {item.label}
               </span>
             </div>
@@ -268,10 +293,7 @@ function GuestPortalHome({ navigate }: { navigate: (s: string) => void }) {
 
         {/* Service grid */}
         <div className="px-4 pt-6 pb-2">
-          <p
-            className="text-xs font-semibold tracking-widest uppercase mb-4"
-            style={{ color: GRAY, fontFamily: "Inter, sans-serif" }}
-          >
+          <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: GRAY, fontFamily: "Inter, sans-serif" }}>
             How can we help?
           </p>
           <div className="grid grid-cols-3 gap-3">
@@ -280,26 +302,20 @@ function GuestPortalHome({ navigate }: { navigate: (s: string) => void }) {
               return (
                 <button
                   key={item.label}
-                  onClick={() => item.screen !== "none" && navigate(item.screen)}
+                  onClick={() => navigate(item.screen)}
                   className="flex flex-col items-center justify-center rounded-xl py-4 px-2 transition-transform active:scale-95"
                   style={{
                     background: WHITE,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                     border: `1px solid rgba(78,52,46,0.08)`,
                     minHeight: 96,
-                    cursor: item.screen !== "none" ? "pointer" : "default",
+                    cursor: "pointer",
                   }}
                 >
-                  <div
-                    className="rounded-full flex items-center justify-center mb-2"
-                    style={{ background: `${GOLD}18`, width: 40, height: 40 }}
-                  >
+                  <div className="rounded-full flex items-center justify-center mb-2" style={{ background: `${GOLD}18`, width: 40, height: 40 }}>
                     <Icon size={18} style={{ color: GOLD }} />
                   </div>
-                  <span
-                    className="text-xs font-medium text-center leading-tight"
-                    style={{ color: CHARCOAL, fontFamily: "Inter, sans-serif", whiteSpace: "pre-line" }}
-                  >
+                  <span className="text-xs font-medium text-center leading-tight" style={{ color: CHARCOAL, fontFamily: "Inter, sans-serif", whiteSpace: "pre-line" }}>
                     {item.label}
                   </span>
                 </button>
@@ -313,17 +329,10 @@ function GuestPortalHome({ navigate }: { navigate: (s: string) => void }) {
           <button
             onClick={() => navigate("tracker")}
             className="w-full rounded-xl p-4 flex items-center justify-between"
-            style={{
-              background: WHITE,
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              border: `1px solid rgba(78,52,46,0.08)`,
-            }}
+            style={{ background: WHITE, boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: `1px solid rgba(78,52,46,0.08)` }}
           >
             <div className="flex items-center gap-3">
-              <div
-                className="rounded-full flex items-center justify-center"
-                style={{ background: "#FFF8E1", width: 36, height: 36 }}
-              >
+              <div className="rounded-full flex items-center justify-center" style={{ background: "#FFF8E1", width: 36, height: 36 }}>
                 <Clock size={16} style={{ color: AMBER }} />
               </div>
               <div className="text-left">
@@ -1442,11 +1451,210 @@ function ViewMyBill({ onBack }: { onBack: () => void }) {
   );
 }
 
+// ── Guest auth data ──────────────────────────────────────────────────────────
+const MOCK_GUESTS: MockGuest[] = [
+  { room:"102", phone:"08050303270", name:"Mr. Chidi Okafor",      checkIn:"Jun 29", checkOut:"Jul 3",  nights:4, type:"Standard · Garden View",   balance:0,     reservation:"BKG-0813", points:4820  },
+  { room:"105", phone:"08031234567", name:"Mrs. Grace Nwosu",      checkIn:"Jun 30", checkOut:"Jul 2",  nights:2, type:"Standard · Pool View",     balance:12500, reservation:"BKG-0820", points:1340  },
+  { room:"201", phone:"08071234568", name:"Mr. James Carter",      checkIn:"Jun 28", checkOut:"Jul 2",  nights:4, type:"Deluxe · Garden View",     balance:0,     reservation:"BKG-0801", points:6200  },
+  { room:"204", phone:"08091234569", name:"Mr. Adebayo Mensah",    checkIn:"Jul 1",  checkOut:"Jul 4",  nights:3, type:"Deluxe · Garden View",     balance:8000,  reservation:"BKG-0847", points:2100  },
+  { room:"301", phone:"08051234570", name:"Mr. David Okonkwo",     checkIn:"Jun 30", checkOut:"Jul 4",  nights:4, type:"Superior · City View",     balance:0,     reservation:"BKG-0826", points:3500  },
+  { room:"401", phone:"08071234571", name:"Mr. Babatunde Adeyemi", checkIn:"Jun 29", checkOut:"Jul 4",  nights:5, type:"Suite · Panoramic View",   balance:45000, reservation:"BKG-0810", points:12400 },
+  { room:"501", phone:"08021234572", name:"Dr. Emeka Nwachukwu",   checkIn:"Jun 29", checkOut:"Jul 3",  nights:4, type:"Presidential · Penthouse", balance:0,     reservation:"BKG-0802", points:28000 },
+];
+
+// ── Anonymous welcome (QR scan landing state) ─────────────────────────────────
+function AnonWelcome({ navigate, onSignIn }: { navigate: (s: string) => void; onSignIn: () => void }) {
+  return (
+    <PhoneFrame title="B5-01 Guest Portal">
+      <MobileHeader onProfile={onSignIn} />
+      {/* Hero */}
+      <div style={{ background: `linear-gradient(135deg, ${BROWN} 0%, #6D4C41 100%)`, padding: "28px 20px 36px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+        <div style={{ width: 62, height: 62, borderRadius: 18, background: `${GOLD}28`, border: `1.5px solid ${GOLD}55`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+          <BedDouble size={28} color={GOLD} />
+        </div>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 10, fontWeight: 700, color: GOLD, letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 8 }}>Aryhills Hotel & Tower</p>
+        <h2 style={{ fontFamily: "Inter, sans-serif", fontSize: 26, fontWeight: 800, color: WHITE, marginBottom: 6 }}>Welcome</h2>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: `${BEIGE}90`, lineHeight: 1.5 }}>Ilesa, Osun State · Nigeria</p>
+      </div>
+      {/* Body */}
+      <div style={{ flex: 1, overflowY: "auto", background: IVORY, padding: "16px 16px 24px" }}>
+        {/* Sign-in prompt */}
+        <button onClick={onSignIn} style={{ width: "100%", background: WHITE, borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.08)", border: `1px solid rgba(78,52,46,0.10)`, cursor: "pointer", marginBottom: 20, textAlign: "left" }}>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", background: `${GOLD}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <User size={20} color={GOLD} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 700, color: CHARCOAL, marginBottom: 2 }}>Sign In to Your Stay</p>
+            <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: GRAY }}>Room number + phone number to unlock full access</p>
+          </div>
+          <ChevronRight size={16} color={GRAY} />
+        </button>
+
+        {/* Open to all */}
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 10, fontWeight: 700, color: GRAY, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Available to all guests</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
+          {[
+            { Icon: UtensilsCrossed, label: "Food &\nBeverage", sub: "Order food & drinks", screen: "roomservice" },
+            { Icon: PhoneCall, label: "Contact\nReception", sub: "Ring the front desk", screen: "chat" },
+          ].map((item) => {
+            const Icon = item.Icon;
+            return (
+              <button key={item.screen} onClick={() => navigate(item.screen)} style={{ background: WHITE, borderRadius: 14, padding: "18px 12px", textAlign: "center", border: `1px solid rgba(78,52,46,0.08)`, boxShadow: "0 1px 4px rgba(0,0,0,0.06)", cursor: "pointer" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${GOLD}18`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+                  <Icon size={22} color={GOLD} />
+                </div>
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600, color: CHARCOAL, whiteSpace: "pre-line", lineHeight: 1.3, marginBottom: 4 }}>{item.label}</p>
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: GRAY }}>{item.sub}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Locked services */}
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 10, fontWeight: 700, color: GRAY, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Requires sign-in</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+          {[
+            { Icon: BedDouble, label: "Room\nService" },
+            { Icon: MessageSquareWarning, label: "Complaints" },
+            { Icon: CalendarDays, label: "My Bill" },
+            { Icon: Clock, label: "My\nRequests" },
+            { Icon: MapPin, label: "Concierge" },
+            { Icon: Star, label: "Housekeeping" },
+          ].map((item) => {
+            const Icon = item.Icon;
+            return (
+              <button key={item.label} onClick={onSignIn} style={{ background: "rgba(0,0,0,0.03)", borderRadius: 12, padding: "12px 6px", textAlign: "center", border: "1px dashed rgba(0,0,0,0.11)", cursor: "pointer" }}>
+                <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.05)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 7px" }}>
+                  <Icon size={14} color={GRAY} />
+                </div>
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: 10, fontWeight: 500, color: GRAY, whiteSpace: "pre-line", lineHeight: 1.3, marginBottom: 3 }}>{item.label}</p>
+                <p style={{ fontFamily: "Inter, sans-serif", fontSize: 9, color: `${GRAY}70` }}>🔒 Sign in</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+// ── Login modal ───────────────────────────────────────────────────────────────
+function LoginModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (guest: MockGuest) => void }) {
+  const [room, setRoom] = useState("");
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleVerify = () => {
+    setLoading(true);
+    setError("");
+    setTimeout(() => {
+      const guest = MOCK_GUESTS.find((g) => g.room === room.trim() && g.phone === phone.trim());
+      if (guest) {
+        onSuccess(guest);
+      } else {
+        setError("Room number or phone number not found. Please check your details and try again.");
+      }
+      setLoading(false);
+    }, 900);
+  };
+
+  return (
+    <PhoneFrame title="Verify Your Stay">
+      <MobileHeader title="Sign In" onBack={onClose} />
+      <div style={{ flex: 1, overflowY: "auto", background: IVORY, padding: "20px 16px 24px" }}>
+        <div style={{ background: WHITE, borderRadius: 16, padding: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", marginBottom: 14 }}>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 16, fontWeight: 700, color: CHARCOAL, marginBottom: 4 }}>Verify Your Stay</p>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: GRAY, marginBottom: 20, lineHeight: 1.6 }}>
+            Enter the room number and the phone number used when making your booking.
+          </p>
+          {/* Room */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: GRAY, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 7 }}>Room Number</label>
+            <input
+              value={room}
+              onChange={(e) => { setRoom(e.target.value); setError(""); }}
+              placeholder="e.g. 102, 301, 401"
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${error ? RED : "rgba(78,52,46,0.18)"}`, background: IVORY, fontFamily: "Inter, sans-serif", fontSize: 15, color: CHARCOAL, outline: "none", boxSizing: "border-box" as const }}
+            />
+          </div>
+          {/* Phone */}
+          <div style={{ marginBottom: error ? 14 : 20 }}>
+            <label style={{ fontFamily: "Inter, sans-serif", fontSize: 11, fontWeight: 700, color: GRAY, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 7 }}>Phone Number</label>
+            <input
+              value={phone}
+              onChange={(e) => { setPhone(e.target.value); setError(""); }}
+              placeholder="e.g. 08050303270"
+              type="tel"
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${error ? RED : "rgba(78,52,46,0.18)"}`, background: IVORY, fontFamily: "Inter, sans-serif", fontSize: 15, color: CHARCOAL, outline: "none", boxSizing: "border-box" as const }}
+            />
+          </div>
+          {error && (
+            <div style={{ background: "#FFEBEE", borderRadius: 8, padding: "10px 14px", marginBottom: 16 }}>
+              <p style={{ fontFamily: "Inter, sans-serif", fontSize: 12, color: RED, lineHeight: 1.5 }}>{error}</p>
+            </div>
+          )}
+          <GoldButton onClick={handleVerify} disabled={!room || !phone || loading}>
+            {loading ? "Verifying…" : "Verify & Sign In"}
+          </GoldButton>
+        </div>
+
+        {/* Demo hint */}
+        <div style={{ background: `${GOLD}10`, borderRadius: 12, padding: "12px 14px", border: `1px solid ${GOLD}22`, marginBottom: 14 }}>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: "#8B6914", lineHeight: 1.8 }}>
+            <strong>Demo:</strong> Try Room <strong>102</strong> + <strong>08050303270</strong>
+            <br />or Room <strong>401</strong> + <strong>08071234571</strong>
+          </p>
+        </div>
+
+        {/* Security note */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px", background: WHITE, borderRadius: 12, border: `1px solid rgba(78,52,46,0.08)` }}>
+          <PhoneCall size={14} color={GRAY} style={{ marginTop: 2, flexShrink: 0 }} />
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 11, color: GRAY, lineHeight: 1.6 }}>
+            For security, all orders will be confirmed via a call to your registered phone number before processing.
+          </p>
+        </div>
+      </div>
+    </PhoneFrame>
+  );
+}
+
 // ── Root app / navigation ────────────────────────────────────────────────────
 export default function GuestMobileApp() {
   const [screen, setScreen] = useState<string>("home");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authGuest, setAuthGuest] = useState<MockGuest | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
 
   const goHome = () => setScreen("home");
+
+  const handleSignIn = (guest: MockGuest) => {
+    setAuthGuest(guest);
+    setIsAuthenticated(true);
+    setShowLogin(false);
+    setScreen("home");
+  };
+
+  const handleSignOut = () => {
+    setIsAuthenticated(false);
+    setAuthGuest(null);
+    setScreen("home");
+  };
+
+  const activeContent = () => {
+    if (showLogin) return <LoginModal onClose={() => setShowLogin(false)} onSuccess={handleSignIn} />;
+    if (screen === "home") {
+      return isAuthenticated && authGuest
+        ? <GuestPortalHome navigate={setScreen} guest={authGuest} onSignOut={handleSignOut} />
+        : <AnonWelcome navigate={setScreen} onSignIn={() => setShowLogin(true)} />;
+    }
+    if (screen === "roomservice") return <RoomServiceFlow onBack={goHome} />;
+    if (screen === "complaint") return <ComplaintFlow onBack={goHome} />;
+    if (screen === "chat") return <LiveChat onBack={goHome} />;
+    if (screen === "tracker") return <RequestTracker onBack={goHome} />;
+    if (screen === "bill") return <ViewMyBill onBack={goHome} />;
+    return null;
+  };
 
   return (
     <div
@@ -1463,23 +1671,22 @@ export default function GuestMobileApp() {
       `}</style>
 
       {/* Title bar */}
-      <div
-        className="w-full py-4 px-8 flex-shrink-0"
-        style={{ background: BROWN }}
-      >
+      <div className="w-full py-4 px-8 flex-shrink-0" style={{ background: BROWN }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
-            <p
-              className="font-bold text-base tracking-widest uppercase"
-              style={{ color: BEIGE, fontFamily: "Inter, sans-serif" }}
-            >
+            <p className="font-bold text-base tracking-widest uppercase" style={{ color: BEIGE, fontFamily: "Inter, sans-serif" }}>
               Aryhills Hotel
             </p>
             <p className="text-xs" style={{ color: `${BEIGE}80`, fontFamily: "Inter, sans-serif" }}>
               Guest Mobile Self-Service Portal
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap justify-end">
+          <div className="flex gap-2 flex-wrap justify-end items-center">
+            {isAuthenticated && authGuest && (
+              <span className="text-xs px-3 py-1.5 rounded-lg" style={{ background: `${GOLD}28`, color: BEIGE, fontFamily: "Inter, sans-serif" }}>
+                🔓 Room {authGuest.room} · {authGuest.name.split(" ").slice(-1)[0]}
+              </span>
+            )}
             {[
               { key: "home", label: "B5-01 Home" },
               { key: "roomservice", label: "B5-02 Room Service" },
@@ -1490,11 +1697,11 @@ export default function GuestMobileApp() {
             ].map((s) => (
               <button
                 key={s.key}
-                onClick={() => setScreen(s.key)}
+                onClick={() => { setShowLogin(false); setScreen(s.key); }}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                 style={{
-                  background: screen === s.key ? GOLD : "rgba(255,255,255,0.12)",
-                  color: screen === s.key ? WHITE : BEIGE,
+                  background: screen === s.key && !showLogin ? GOLD : "rgba(255,255,255,0.12)",
+                  color: screen === s.key && !showLogin ? WHITE : BEIGE,
                   fontFamily: "Inter, sans-serif",
                 }}
               >
@@ -1505,14 +1712,9 @@ export default function GuestMobileApp() {
         </div>
       </div>
 
-      {/* Main content — single active screen */}
+      {/* Main content */}
       <div className="flex-1 flex items-start justify-center py-10 px-4">
-        {screen === "home" && <GuestPortalHome navigate={setScreen} />}
-        {screen === "roomservice" && <RoomServiceFlow onBack={goHome} />}
-        {screen === "complaint" && <ComplaintFlow onBack={goHome} />}
-        {screen === "chat" && <LiveChat onBack={goHome} />}
-        {screen === "tracker" && <RequestTracker onBack={goHome} />}
-        {screen === "bill" && <ViewMyBill onBack={goHome} />}
+        {activeContent()}
       </div>
     </div>
   );
