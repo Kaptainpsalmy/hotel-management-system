@@ -307,313 +307,170 @@ function PageHeader({ screenId, onAction }: { screenId: string; onAction: () => 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// B3-01  HOUSEKEEPING TASK BOARD
+// B3-01  DEPARTMENT BOARD
 // ═══════════════════════════════════════════════════════════════════════════════
 
-type HKColumn = "toclean" | "cleaning" | "inspecting" | "done";
-interface HKCard {
-  id: string; roomNumber: string; floor: number;
-  assignedTo: string; timeInStage: string; notes?: string; column: HKColumn;
-}
+const DEPT_INFO = [
+  { id:"Housekeeping", name:"Housekeeping", Icon:Layers, color:C.amber, staffToday:3,
+    tasks:[{l:"To Clean",n:5,c:C.gray},{l:"Cleaning",n:4,c:C.amber},{l:"Inspecting",n:2,c:"#1565C0"},{l:"Done",n:6,c:C.green}],
+    note:"17 rooms assigned across 3 attendants today" },
+  { id:"Maintenance", name:"Maintenance", Icon:Wrench, color:C.red, staffToday:2,
+    tasks:[{l:"Pending",n:3,c:C.red},{l:"Assigned",n:2,c:C.amber},{l:"In Progress",n:2,c:"#1565C0"},{l:"Done",n:2,c:C.green}],
+    note:"3 complaints pending manager approval" },
+  { id:"Restaurant", name:"Restaurant", Icon:UtensilsCrossed, color:"#6A1B9A", staffToday:2,
+    tasks:[{l:"Tables Set",n:8,c:C.green},{l:"Occupied",n:4,c:C.gold},{l:"Reserved",n:3,c:"#8B6914"}],
+    note:"Lunch service active · 18 covers so far" },
+  { id:"Security", name:"Security", Icon:Eye, color:"#283593", staffToday:1,
+    tasks:[{l:"Posts Active",n:4,c:C.green},{l:"Incidents",n:0,c:C.gray}],
+    note:"All posts manned · Night handover 22:00" },
+  { id:"Front Desk", name:"Front Desk", Icon:CreditCard, color:C.gold, staffToday:2,
+    tasks:[{l:"Check-Ins",n:3,c:C.green},{l:"Check-Outs",n:2,c:C.amber},{l:"Requests",n:5,c:C.red}],
+    note:"5 guest requests open · 3 arrivals expected" },
+] as const;
 
-const INIT_HK_CARDS: HKCard[] = [
-  { id:"hk1",  roomNumber:"Room 101", floor:1, assignedTo:"Fatima Yusuf",    timeInStage:"0m",   column:"toclean"   },
-  { id:"hk2",  roomNumber:"Room 205", floor:2, assignedTo:"Ngozi Eze",       timeInStage:"5m",   column:"toclean"   },
-  { id:"hk3",  roomNumber:"Suite 310",floor:3, assignedTo:"Unassigned",      timeInStage:"2m",   notes:"VIP checkout", column:"toclean"},
-  { id:"hk4",  roomNumber:"Room 112", floor:1, assignedTo:"Amaka Obi",       timeInStage:"18m",  column:"cleaning"  },
-  { id:"hk5",  roomNumber:"Room 214", floor:2, assignedTo:"Halima Sule",     timeInStage:"22m",  column:"cleaning"  },
-  { id:"hk6",  roomNumber:"Room 308", floor:3, assignedTo:"Fatima Yusuf",    timeInStage:"14m",  column:"cleaning"  },
-  { id:"hk7",  roomNumber:"Suite 201",floor:2, assignedTo:"Ngozi Eze",       timeInStage:"8m",   column:"inspecting"},
-  { id:"hk8",  roomNumber:"Room 115", floor:1, assignedTo:"Amaka Obi",       timeInStage:"6m",   notes:"Extra towels requested", column:"inspecting"},
-  { id:"hk9",  roomNumber:"Room 104", floor:1, assignedTo:"Halima Sule",     timeInStage:"45m",  column:"done"      },
-  { id:"hk10", roomNumber:"Room 207", floor:2, assignedTo:"Fatima Yusuf",    timeInStage:"38m",  column:"done"      },
-  { id:"hk11", roomNumber:"Suite 402",floor:4, assignedTo:"Amaka Obi",       timeInStage:"52m",  column:"done"      },
-];
-
-const HK_COLUMNS: { id: HKColumn; label: string; color: string }[] = [
-  { id: "toclean",   label: "To Clean",  color: C.gray  },
-  { id: "cleaning",  label: "Cleaning",  color: C.amber },
-  { id: "inspecting",label: "Inspecting",color: "#1565C0"},
-  { id: "done",      label: "Done",      color: C.green },
-];
-
-function HousekeepingTaskBoard() {
-  const [cards, setCards] = useState<HKCard[]>(INIT_HK_CARDS);
-  const dragId = useRef<string | null>(null);
-
-  const handleDragStart = (id: string) => { dragId.current = id; };
-  const handleDrop = (col: HKColumn) => {
-    if (!dragId.current) return;
-    setCards(prev => prev.map(c => c.id === dragId.current ? { ...c, column: col } : c));
-    dragId.current = null;
-  };
-
+function HousekeepingDeptBoard({ onSelectDept }: { onSelectDept: (d: string) => void }) {
+  const today = new Date().toLocaleDateString("en-NG", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
   return (
-    <div style={{ padding: 32, display: "flex", gap: 20, alignItems: "flex-start" }}>
-      {HK_COLUMNS.map(col => {
-        const colCards = cards.filter(c => c.column === col.id);
-        return (
-          <div
-            key={col.id}
-            onDragOver={e => e.preventDefault()}
-            onDrop={() => handleDrop(col.id)}
-            style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}
-          >
-            {/* Column header */}
-            <div style={{
-              background: C.white, borderRadius: 8, padding: "12px 16px",
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              borderTop: `3px solid ${col.color}`
-            }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.charcoal }}>{col.label}</span>
-              <span style={{
-                background: col.color + "20", color: col.color,
-                fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999
-              }}>{colCards.length}</span>
-            </div>
-
-            {/* Cards */}
-            {colCards.map(card => (
-              <div
-                key={card.id}
-                draggable
-                onDragStart={() => handleDragStart(card.id)}
-                style={{
-                  background: C.white, borderRadius: 8, padding: 16,
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                  cursor: "grab", border: `1px solid ${C.beige}50`,
-                  transition: "box-shadow 0.15s"
-                }}
-                onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)")}
-                onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08)")}
-              >
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 10 }}>
-                  <GripVertical size={14} color={C.beige} style={{ marginTop: 2, flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: C.charcoal }}>{card.roomNumber}</div>
-                    <div style={{ fontSize: 11, color: C.gray }}>Floor {card.floor}</div>
-                  </div>
-                  <MoreVertical size={14} color={C.gray} style={{ cursor: "pointer" }} />
+    <div style={{ padding: 32 }}>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 12, color: C.gray, marginBottom: 4 }}>Today · {today}</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.charcoal }}>Departmental Overview — Today's Schedule</div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 20 }}>
+        {DEPT_INFO.map(dept => {
+          const Icon = dept.Icon;
+          return (
+            <button key={dept.id} onClick={() => onSelectDept(dept.id)}
+              style={{ background: C.white, borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", border: "1px solid rgba(0,0,0,0.05)", cursor: "pointer", textAlign: "left", width: "100%", transition: "all 0.15s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 6px 20px rgba(0,0,0,0.12)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 4px rgba(0,0,0,0.08)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: dept.color + "18", display: "flex", alignItems: "center", justifyContent: "center", color: dept.color, flexShrink: 0 }}>
+                  <Icon size={20} />
                 </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                  <div style={{
-                    width: 22, height: 22, borderRadius: "50%", background: C.beige,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 9, fontWeight: 700, color: C.sidebar, flexShrink: 0
-                  }}>
-                    {card.assignedTo.split(" ").map(w => w[0]).slice(0,2).join("")}
-                  </div>
-                  <span style={{ fontSize: 12, color: C.charcoal }}>{card.assignedTo}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: C.charcoal }}>{dept.name}</div>
+                  <div style={{ fontSize: 11, color: C.gray }}>{dept.staffToday} staff on duty today</div>
                 </div>
-
-                {card.notes && (
-                  <div style={{
-                    background: "#FFF8E1", borderRadius: 6, padding: "4px 8px",
-                    fontSize: 11, color: "#8B6914", marginBottom: 8
-                  }}>★ {card.notes}</div>
-                )}
-
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <Clock size={11} color={C.gray} />
-                  <span style={{ fontSize: 11, color: C.gray }}>{card.timeInStage} in stage</span>
-                </div>
+                <ChevronRight size={16} color={C.beige} />
               </div>
-            ))}
-
-            {/* Empty state */}
-            {colCards.length === 0 && (
-              <div style={{
-                background: `${col.color}08`, border: `2px dashed ${col.color}30`,
-                borderRadius: 8, padding: 24, textAlign: "center"
-              }}>
-                <CheckCircle2 size={20} color={col.color} style={{ opacity: 0.4, margin: "0 auto 6px" }} />
-                <div style={{ fontSize: 12, color: C.gray }}>No rooms in this stage</div>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 12 }}>
+                {dept.tasks.map(t => (
+                  <span key={t.l} style={{ background: t.c + "18", color: t.c, borderRadius: 999, padding: "3px 10px", fontSize: 11, fontWeight: 600 }}>
+                    {t.n} {t.l}
+                  </span>
+                ))}
               </div>
-            )}
-          </div>
-        );
-      })}
+              <div style={{ fontSize: 11, color: C.gray, borderTop: `1px solid ${C.beige}40`, paddingTop: 10 }}>
+                {dept.note}
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// B3-02  HOUSEKEEPING ASSIGNMENT GRID
+// B3-02  DEPARTMENT ASSIGNMENT DETAIL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-type RoomStatus = "available" | "occupied" | "cleaning" | "inspecting" | "toclean" | "done";
+const ALL_DEPTS = ["Housekeeping","Maintenance","Restaurant","Security","Front Desk"] as const;
 
-interface RoomCell {
-  room: string; housekeeper: string; shift: "morning" | "afternoon" | "night";
-  status: RoomStatus;
-}
+function HousekeepingAssignmentGrid({ dept, onBack }: { dept: string|null; onBack: () => void }) {
+  const [activeDept, setActiveDept] = useState(dept || "Housekeeping");
+  const [shiftFilter, setShiftFilter] = useState<string>("all");
+  const todayIdx = 1; // "Tue 1"
 
-const HOUSEKEEPERS = ["Fatima Y.", "Ngozi E.", "Amaka O.", "Halima S.", "Chioma A."];
-const SHIFTS: Array<"morning"|"afternoon"|"night"> = ["morning", "afternoon", "morning", "night", "afternoon"];
-
-function makeGrid() {
-  const floors = [1,2,3,4];
-  const roomsPerFloor = [101,102,103,104,105,106];
-  const statusPool: RoomStatus[] = ["available","occupied","cleaning","inspecting","toclean","done"];
-  const grid: Record<number, RoomCell[]> = {};
-  floors.forEach(f => {
-    grid[f] = roomsPerFloor.map((base, i) => {
-      const hIdx = (f + i) % HOUSEKEEPERS.length;
-      return {
-        room: `${f}0${i+1}`,
-        housekeeper: HOUSEKEEPERS[hIdx],
-        shift: SHIFTS[hIdx],
-        status: statusPool[(f * 3 + i * 7) % statusPool.length],
-      };
-    });
-  });
-  return grid;
-}
-
-const GRID_DATA = makeGrid();
-
-const ROOM_STATUS_COLORS: Record<RoomStatus, string> = {
-  available:  C.green,
-  occupied:   C.gold,
-  cleaning:   C.amber,
-  inspecting: "#1565C0",
-  toclean:    C.gray,
-  done:       C.green,
-};
-
-function HousekeepingAssignmentGrid() {
-  const [filterShift, setFilterShift] = useState<string>("all");
-  const [selectedRoom, setSelectedRoom] = useState<RoomCell | null>(null);
+  const deptStaff = STAFF_SCHEDULE.filter(s => s.dept === activeDept);
+  const visibleStaff = shiftFilter === "all" ? deptStaff
+    : deptStaff.filter(s => s.shifts[todayIdx] === shiftFilter);
 
   return (
     <div style={{ padding: 32 }}>
-      {/* Filters */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 24, alignItems: "center" }}>
-        <Filter size={14} color={C.gray} />
-        <span style={{ fontSize: 12, color: C.gray, marginRight: 4 }}>Filter by shift:</span>
-        {["all","morning","afternoon","night"].map(s => (
-          <button key={s} onClick={() => setFilterShift(s)} style={{
-            padding: "4px 14px", borderRadius: 999, border: "none", cursor: "pointer",
-            fontSize: 12, fontWeight: 500,
-            background: filterShift === s ? C.gold : C.white,
-            color: filterShift === s ? "#fff" : C.gray,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
-          }}>
-            {s === "all" ? "All Shifts" : s.charAt(0).toUpperCase() + s.slice(1)}
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "transparent", border: `1px solid ${C.beige}`, borderRadius: 8, padding: "6px 14px", cursor: "pointer", fontSize: 12, color: C.charcoal }}>
+          <ChevronLeft size={14} /> Dept Board
+        </button>
+        <div>
+          <div style={{ fontSize: 11, color: C.gray }}>Back-of-House → Schedule</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.charcoal }}>{activeDept} — Assignment Detail</div>
+        </div>
+        <div style={{ marginLeft: "auto", fontSize: 12, color: C.gray }}>Week of 30 Jun – 6 Jul 2026</div>
+      </div>
+
+      {/* Dept tabs + shift filter */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+        {ALL_DEPTS.map(d => (
+          <button key={d} onClick={() => setActiveDept(d)} style={{ padding: "5px 14px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, background: activeDept === d ? C.gold : C.white, color: activeDept === d ? "#fff" : C.gray, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+            {d}
           </button>
         ))}
-
-        {/* Legend */}
-        <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
-          {(["available","occupied","cleaning","inspecting","toclean"] as RoomStatus[]).map(s => (
-            <div key={s} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <div style={{ width: 10, height: 10, borderRadius: 2, background: ROOM_STATUS_COLORS[s] }} />
-              <span style={{ fontSize: 11, color: C.gray }}>{STATUS_MAP[s]?.label ?? s}</span>
-            </div>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+          {["all","morning","afternoon","night"].map(s => (
+            <button key={s} onClick={() => setShiftFilter(s)} style={{ padding: "5px 14px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 12, background: shiftFilter === s ? C.sidebar : C.white, color: shiftFilter === s ? "#fff" : C.gray, boxShadow: "0 1px 2px rgba(0,0,0,0.08)" }}>
+              {s === "all" ? "All Shifts" : s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Schedule table */}
       <div style={{ background: C.white, borderRadius: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.08)", overflow: "hidden" }}>
-        {/* Header row */}
-        <div style={{ display: "grid", gridTemplateColumns: "80px repeat(6, 1fr)", background: C.sidebar }}>
-          <div style={{ padding: "12px 16px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>Floor</div>
-          {[1,2,3,4,5,6].map(r => (
-            <div key={r} style={{ padding: "12px 8px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.8)", textAlign: "center" }}>
-              Room {String(r).padStart(2, "0")}
-            </div>
+        <div style={{ display: "grid", gridTemplateColumns: "180px 100px repeat(7,1fr)", background: C.sidebar }}>
+          <div style={{ padding: "12px 16px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>Staff Member</div>
+          <div style={{ padding: "12px 8px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>Role</div>
+          {DAYS.map((d, i) => (
+            <div key={d} style={{ padding: "12px 4px", fontSize: 11, fontWeight: 600, textAlign: "center", color: i === todayIdx ? C.gold : "rgba(255,255,255,0.7)", background: i === todayIdx ? "rgba(184,134,11,0.15)" : "transparent" }}>{d}</div>
           ))}
         </div>
-
-        {[1,2,3,4].map((floor, fi) => (
-          <div key={floor} style={{
-            display: "grid", gridTemplateColumns: "80px repeat(6, 1fr)",
-            background: fi % 2 === 1 ? `${C.beige}18` : C.white,
-            borderTop: `1px solid ${C.beige}40`
-          }}>
-            <div style={{
-              padding: "14px 16px", fontSize: 13, fontWeight: 600, color: C.charcoal,
-              display: "flex", alignItems: "center"
-            }}>Floor {floor}</div>
-            {GRID_DATA[floor].map((cell, ci) => {
-              if (filterShift !== "all" && cell.shift !== filterShift) return (
-                <div key={ci} style={{ padding: 12, opacity: 0.3 }}>
-                  <div style={{ fontSize: 11, color: C.gray, textAlign: "center" }}>—</div>
-                </div>
-              );
+        {visibleStaff.map((row, ri) => (
+          <div key={row.name} style={{ display: "grid", gridTemplateColumns: "180px 100px repeat(7,1fr)", background: ri % 2 === 1 ? `${C.beige}12` : C.white, borderBottom: `1px solid ${C.beige}30` }}>
+            <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.beige, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: C.sidebar, flexShrink: 0 }}>
+                {row.name.split(" ").map(w => w[0]).slice(0,2).join("")}
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 500, color: C.charcoal }}>{row.name}</span>
+            </div>
+            <div style={{ padding: "12px 8px", fontSize: 11, color: C.gray, display: "flex", alignItems: "center" }}>{row.role}</div>
+            {row.shifts.map((shift, di) => {
+              const ss = SHIFT_STYLE[shift];
               return (
-                <div key={ci}
-                  onClick={() => setSelectedRoom(cell)}
-                  style={{
-                    padding: "10px 8px", cursor: "pointer", borderLeft: `1px solid ${C.beige}40`,
-                    transition: "background 0.15s"
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = `${C.beige}30`)}
-                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
-                    <div style={{
-                      width: 8, height: 8, borderRadius: "50%",
-                      background: ROOM_STATUS_COLORS[cell.status], flexShrink: 0
-                    }} />
-                    <span style={{ fontSize: 12, fontWeight: 600, color: C.charcoal }}>
-                      {floor}{String(ci+1).padStart(2,"0")}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 11, color: C.charcoal, marginBottom: 2 }}>{cell.housekeeper}</div>
-                  <StatusBadge status={cell.shift} />
+                <div key={di} style={{ padding: "8px 4px", display: "flex", alignItems: "center", justifyContent: "center", background: di === todayIdx ? "rgba(184,134,11,0.05)" : "transparent" }}>
+                  <div style={{ width: 32, height: 26, borderRadius: 6, background: ss.bg, border: `1px solid ${ss.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: ss.color }}>{ss.label}</div>
                 </div>
               );
             })}
           </div>
         ))}
+        {visibleStaff.length === 0 && (
+          <div style={{ padding: 32, textAlign: "center", fontSize: 13, color: C.gray }}>
+            No {activeDept} staff on {shiftFilter === "all" ? "any" : shiftFilter} shift today
+          </div>
+        )}
       </div>
 
-      {/* Detail panel */}
-      {selectedRoom && (
-        <div style={{
-          position: "fixed", right: 0, top: 0, bottom: 0, width: 320,
-          background: C.white, boxShadow: "-4px 0 20px rgba(0,0,0,0.12)",
-          padding: 24, zIndex: 50, overflowY: "auto"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 600, color: C.charcoal, margin: 0 }}>Room {selectedRoom.room}</h2>
-            <button onClick={() => setSelectedRoom(null)} style={{ background: "none", border: "none", cursor: "pointer" }}>
-              <X size={20} color={C.gray} />
-            </button>
+      {/* Shift legend */}
+      <div style={{ display: "flex", gap: 16, marginTop: 16, alignItems: "center" }}>
+        {(["morning","afternoon","night","off"] as ShiftType[]).map(s => (
+          <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 24, height: 20, borderRadius: 4, background: SHIFT_STYLE[s].bg, border: `1px solid ${SHIFT_STYLE[s].color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: SHIFT_STYLE[s].color }}>{SHIFT_STYLE[s].label}</div>
+            <span style={{ fontSize: 12, color: C.gray, textTransform: "capitalize" }}>{s}</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ background: C.ivory, borderRadius: 8, padding: 16 }}>
-              <div style={{ fontSize: 11, color: C.gray, marginBottom: 4 }}>STATUS</div>
-              <StatusBadge status={selectedRoom.status} />
-            </div>
-            <div style={{ background: C.ivory, borderRadius: 8, padding: 16 }}>
-              <div style={{ fontSize: 11, color: C.gray, marginBottom: 4 }}>ASSIGNED HOUSEKEEPER</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: C.charcoal }}>{selectedRoom.housekeeper}</div>
-            </div>
-            <div style={{ background: C.ivory, borderRadius: 8, padding: 16 }}>
-              <div style={{ fontSize: 11, color: C.gray, marginBottom: 4 }}>SHIFT</div>
-              <StatusBadge status={selectedRoom.shift} />
-            </div>
-            <button style={{
-              background: C.gold, color: "#fff", border: "none", borderRadius: 8,
-              padding: "12px", fontSize: 13, fontWeight: 600, cursor: "pointer", marginTop: 8
-            }}>Reassign Housekeeper</button>
-          </div>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// B3-03  MAINTENANCE WORK ORDER BOARD
+// B3-03  MAINTENANCE — ESCALATION FLOW + WORK ORDERS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-type MaintCol = "reported" | "assigned" | "inprogress" | "done";
+type MaintCol = "assigned" | "inprogress" | "done";
 type Priority = "low" | "medium" | "high";
 
 interface MaintCard {
@@ -622,23 +479,30 @@ interface MaintCard {
   assignedTo?: string; reportedAt: string; column: MaintCol;
 }
 
-const INIT_MAINT: MaintCard[] = [
-  { id:"m1",  roomNumber:"Room 302", issueType:"Plumbing",    description:"Shower head leaking continuously",      priority:"high",   reportedAt:"07:14",  column:"reported"  },
-  { id:"m2",  roomNumber:"Room 118", issueType:"Electrical",  description:"Air conditioner not cooling",            priority:"medium", reportedAt:"08:02",  column:"reported"  },
-  { id:"m3",  roomNumber:"Suite 401",issueType:"Furniture",   description:"Broken desk chair armrest",              priority:"low",    reportedAt:"09:30",  column:"reported"  },
-  { id:"m4",  roomNumber:"Room 215", issueType:"Plumbing",    description:"Toilet cistern running non-stop",        priority:"medium", assignedTo:"Emeka Nwosu", reportedAt:"06:50", column:"assigned"},
-  { id:"m5",  roomNumber:"Room 103", issueType:"Electrical",  description:"Bedside lamp faulty – bulb replaced ok", priority:"low",    assignedTo:"Bode Afolabi", reportedAt:"07:22", column:"assigned"},
-  { id:"m6",  roomNumber:"Room 404", issueType:"HVAC",        description:"Strange noise from ceiling fan",         priority:"medium", assignedTo:"Emeka Nwosu", reportedAt:"08:45", column:"inprogress"},
-  { id:"m7",  roomNumber:"Suite 310",issueType:"Plumbing",    description:"Hot water intermittent – 3rd complaint", priority:"high",   assignedTo:"Tunde Bello",  reportedAt:"06:10", column:"inprogress"},
-  { id:"m8",  roomNumber:"Room 206", issueType:"Furniture",   description:"TV remote missing",                      priority:"low",    assignedTo:"Bode Afolabi", reportedAt:"09:00", column:"done"},
-  { id:"m9",  roomNumber:"Room 109", issueType:"Electrical",  description:"Bathroom light flickering",              priority:"medium", assignedTo:"Tunde Bello",  reportedAt:"05:30", column:"done"},
+interface PendingComplaint {
+  id: string; room: string; guestName: string; issueType: string;
+  description: string; reportedAt: string;
+}
+
+const PENDING_COMPLAINTS_INIT: PendingComplaint[] = [
+  { id:"pc1", room:"Room 302", guestName:"Mr. Chidi Okafor",    issueType:"Plumbing",   description:"Shower head leaking continuously — guest very upset", reportedAt:"07:14" },
+  { id:"pc2", room:"Room 118", guestName:"Mrs. Aisha Bello",    issueType:"Electrical", description:"Air conditioner not cooling at all, room is unbearable", reportedAt:"08:02" },
+  { id:"pc3", room:"Suite 401",guestName:"Dr. Emeka Eze",       issueType:"HVAC",       description:"Strange smell from ventilation — guest requesting room change", reportedAt:"09:30" },
 ];
 
-const MAINT_COLUMNS: { id: MaintCol; label: string; color: string }[] = [
-  { id:"reported",   label:"Reported",    color: C.red   },
-  { id:"assigned",   label:"Assigned",    color: C.amber },
-  { id:"inprogress", label:"In Progress", color: "#1565C0"},
-  { id:"done",       label:"Done",        color: C.green },
+const INIT_WORK_ORDERS: MaintCard[] = [
+  { id:"m4", roomNumber:"Room 215", issueType:"Plumbing",   description:"Toilet cistern running non-stop",        priority:"medium", assignedTo:"Emeka Nwosu",  reportedAt:"06:50", column:"assigned"   },
+  { id:"m5", roomNumber:"Room 103", issueType:"Electrical", description:"Bedside lamp faulty – bulb replaced ok", priority:"low",    assignedTo:"Bode Afolabi", reportedAt:"07:22", column:"assigned"   },
+  { id:"m6", roomNumber:"Room 404", issueType:"HVAC",       description:"Strange noise from ceiling fan",         priority:"medium", assignedTo:"Emeka Nwosu",  reportedAt:"08:45", column:"inprogress" },
+  { id:"m7", roomNumber:"Suite 310",issueType:"Plumbing",   description:"Hot water intermittent – 3rd complaint", priority:"high",   assignedTo:"Tunde Bello",  reportedAt:"06:10", column:"inprogress" },
+  { id:"m8", roomNumber:"Room 206", issueType:"Furniture",  description:"TV remote missing",                      priority:"low",    assignedTo:"Bode Afolabi", reportedAt:"09:00", column:"done"       },
+  { id:"m9", roomNumber:"Room 109", issueType:"Electrical", description:"Bathroom light flickering",              priority:"medium", assignedTo:"Tunde Bello",  reportedAt:"05:30", column:"done"       },
+];
+
+const MAINT_WO_COLUMNS: { id: MaintCol; label: string; color: string }[] = [
+  { id:"assigned",   label:"Assigned",    color: C.amber   },
+  { id:"inprogress", label:"In Progress", color: "#1565C0" },
+  { id:"done",       label:"Done",        color: C.green   },
 ];
 
 const PRIORITY_STYLE: Record<Priority, { bg: string; color: string; label: string }> = {
@@ -647,9 +511,26 @@ const PRIORITY_STYLE: Record<Priority, { bg: string; color: string; label: strin
   low:    { bg: "#E8F5E9", color: C.green, label: "Low" },
 };
 
+const TECHNICIANS = ["Emeka Nwosu", "Bode Afolabi", "Tunde Bello"];
+
 function MaintenanceBoard() {
-  const [cards, setCards] = useState<MaintCard[]>(INIT_MAINT);
+  const [cards, setCards] = useState<MaintCard[]>(INIT_WORK_ORDERS);
+  const [pending, setPending] = useState<PendingComplaint[]>(PENDING_COMPLAINTS_INIT);
+  const [approvingId, setApprovingId] = useState<string|null>(null);
+  const [approvePriority, setApprovePriority] = useState<Priority>("medium");
+  const [approveAssignee, setApproveAssignee] = useState(TECHNICIANS[0]);
   const dragId = useRef<string | null>(null);
+
+  const handleApprove = (c: PendingComplaint) => {
+    const card: MaintCard = {
+      id: "m-" + Date.now(), roomNumber: c.room, issueType: c.issueType,
+      description: c.description, priority: approvePriority,
+      assignedTo: approveAssignee, reportedAt: c.reportedAt, column: "assigned",
+    };
+    setCards(prev => [...prev, card]);
+    setPending(prev => prev.filter(p => p.id !== c.id));
+    setApprovingId(null);
+  };
 
   const handleDrop = (col: MaintCol) => {
     if (!dragId.current) return;
@@ -658,191 +539,243 @@ function MaintenanceBoard() {
   };
 
   return (
-    <div style={{ padding: 32, display: "flex", gap: 20, alignItems: "flex-start" }}>
-      {MAINT_COLUMNS.map(col => {
-        const colCards = cards.filter(c => c.column === col.id);
-        return (
-          <div
-            key={col.id}
-            onDragOver={e => e.preventDefault()}
-            onDrop={() => handleDrop(col.id)}
-            style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}
-          >
-            <div style={{
-              background: C.white, borderRadius: 8, padding: "12px 16px",
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-              borderTop: `3px solid ${col.color}`
-            }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: C.charcoal }}>{col.label}</span>
-              <span style={{
-                background: col.color + "20", color: col.color,
-                fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999
-              }}>{colCards.length}</span>
-            </div>
-
-            {colCards.map(card => {
-              const pri = PRIORITY_STYLE[card.priority];
-              return (
-                <div
-                  key={card.id}
-                  draggable
-                  onDragStart={() => { dragId.current = card.id; }}
-                  style={{
-                    background: C.white, borderRadius: 8, padding: 16,
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                    cursor: "grab", border: `1px solid ${C.beige}50`,
-                    transition: "box-shadow 0.15s"
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)")}
-                  onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08)")}
-                >
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <GripVertical size={13} color={C.beige} />
-                      <span style={{ fontSize: 14, fontWeight: 600, color: C.charcoal }}>{card.roomNumber}</span>
-                    </div>
-                    <span style={{
-                      background: pri.bg, color: pri.color,
-                      fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 999
-                    }}>{pri.label}</span>
-                  </div>
-
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 2 }}>{card.issueType}</div>
-                    <div style={{ fontSize: 12, color: C.charcoal, lineHeight: 1.5 }}>{card.description}</div>
-                  </div>
-
-                  {card.assignedTo && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                      <div style={{
-                        width: 20, height: 20, borderRadius: "50%", background: C.beige,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 8, fontWeight: 700, color: C.sidebar
-                      }}>
-                        {card.assignedTo.split(" ").map(w => w[0]).slice(0,2).join("")}
-                      </div>
-                      <span style={{ fontSize: 11, color: C.charcoal }}>{card.assignedTo}</span>
-                    </div>
-                  )}
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, borderTop: `1px solid ${C.beige}30`, paddingTop: 8 }}>
-                    <Clock size={10} color={C.gray} />
-                    <span style={{ fontSize: 10, color: C.gray }}>Reported {card.reportedAt} today</span>
-                  </div>
-                </div>
-              );
-            })}
-
-            {colCards.length === 0 && (
-              <div style={{
-                background: `${col.color}08`, border: `2px dashed ${col.color}30`,
-                borderRadius: 8, padding: 24, textAlign: "center"
-              }}>
-                <CheckCircle2 size={18} color={col.color} style={{ opacity: 0.4, margin: "0 auto 6px" }} />
-                <div style={{ fontSize: 12, color: C.gray }}>No tickets here</div>
-              </div>
-            )}
+    <div style={{ padding: 32 }}>
+      {/* ── Pending Complaints ── */}
+      {pending.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: C.red }} />
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.charcoal }}>Pending Complaints</div>
+            <span style={{ background: C.red + "18", color: C.red, borderRadius: 999, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{pending.length}</span>
+            <span style={{ fontSize: 12, color: C.gray }}>· Awaiting manager approval before becoming work orders</span>
           </div>
-        );
-      })}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {pending.map(complaint => (
+              <div key={complaint.id} style={{ background: C.white, borderRadius: 10, padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: `1px solid ${C.red}25` }}>
+                {approvingId === complaint.id ? (
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: C.charcoal, marginBottom: 14 }}>
+                      Approving: {complaint.room} — {complaint.issueType}
+                    </div>
+                    <div style={{ display: "flex", gap: 20, alignItems: "flex-end", flexWrap: "wrap" }}>
+                      <div>
+                        <div style={{ fontSize: 11, color: C.gray, marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Priority</div>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          {(["low","medium","high"] as Priority[]).map(p => (
+                            <button key={p} onClick={() => setApprovePriority(p)} style={{ padding: "5px 14px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: approvePriority === p ? PRIORITY_STYLE[p].bg : "#f5f5f5", color: approvePriority === p ? PRIORITY_STYLE[p].color : C.gray }}>
+                              {p.charAt(0).toUpperCase() + p.slice(1)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 11, color: C.gray, marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Assign To</div>
+                        <select value={approveAssignee} onChange={e => setApproveAssignee(e.target.value)} style={{ padding: "6px 12px", borderRadius: 8, border: `1px solid ${C.beige}`, fontSize: 13, color: C.charcoal, background: C.white, cursor: "pointer" }}>
+                          {TECHNICIANS.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </div>
+                      <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+                        <button onClick={() => handleApprove(complaint)} style={{ background: C.green, color: "#fff", border: "none", borderRadius: 8, padding: "8px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                          Confirm & Create Work Order
+                        </button>
+                        <button onClick={() => setApprovingId(null)} style={{ background: C.white, color: C.gray, border: `1px solid ${C.beige}`, borderRadius: 8, padding: "8px 14px", fontSize: 12, cursor: "pointer" }}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: C.charcoal }}>{complaint.room}</span>
+                        <span style={{ fontSize: 12, color: C.gold, fontWeight: 600 }}>{complaint.issueType}</span>
+                        <span style={{ fontSize: 11, color: C.gray }}>Reported {complaint.reportedAt} · via Front Desk</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: C.charcoal }}>{complaint.description}</div>
+                      <div style={{ fontSize: 11, color: C.gray, marginTop: 4 }}>Guest: {complaint.guestName}</div>
+                    </div>
+                    <button onClick={() => { setApprovingId(complaint.id); setApprovePriority("medium"); }} style={{ background: C.gold, color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>
+                      Approve &amp; Assign
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Work Orders Kanban ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: C.charcoal }}>Work Orders</div>
+        <span style={{ fontSize: 12, color: C.gray }}>· Drag cards to update status</span>
+      </div>
+      <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+        {MAINT_WO_COLUMNS.map(col => {
+          const colCards = cards.filter(c => c.column === col.id);
+          return (
+            <div key={col.id} onDragOver={e => e.preventDefault()} onDrop={() => handleDrop(col.id)}
+              style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ background: C.white, borderRadius: 8, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", borderTop: `3px solid ${col.color}` }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: C.charcoal }}>{col.label}</span>
+                <span style={{ background: col.color + "20", color: col.color, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999 }}>{colCards.length}</span>
+              </div>
+              {colCards.map(card => {
+                const pri = PRIORITY_STYLE[card.priority];
+                return (
+                  <div key={card.id} draggable onDragStart={() => { dragId.current = card.id; }}
+                    style={{ background: C.white, borderRadius: 8, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.08)", cursor: "grab", border: `1px solid ${C.beige}50`, transition: "box-shadow 0.15s" }}
+                    onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.12)")}
+                    onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.08)")}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <GripVertical size={13} color={C.beige} />
+                        <span style={{ fontSize: 14, fontWeight: 600, color: C.charcoal }}>{card.roomNumber}</span>
+                      </div>
+                      <span style={{ background: pri.bg, color: pri.color, fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 999 }}>{pri.label}</span>
+                    </div>
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 2 }}>{card.issueType}</div>
+                      <div style={{ fontSize: 12, color: C.charcoal, lineHeight: 1.5 }}>{card.description}</div>
+                    </div>
+                    {card.assignedTo && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                        <div style={{ width: 20, height: 20, borderRadius: "50%", background: C.beige, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: C.sidebar }}>
+                          {card.assignedTo.split(" ").map(w => w[0]).slice(0,2).join("")}
+                        </div>
+                        <span style={{ fontSize: 11, color: C.charcoal }}>{card.assignedTo}</span>
+                      </div>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, borderTop: `1px solid ${C.beige}30`, paddingTop: 8 }}>
+                      <Clock size={10} color={C.gray} />
+                      <span style={{ fontSize: 10, color: C.gray }}>Reported {card.reportedAt} today</span>
+                    </div>
+                  </div>
+                );
+              })}
+              {colCards.length === 0 && (
+                <div style={{ background: `${col.color}08`, border: `2px dashed ${col.color}30`, borderRadius: 8, padding: 24, textAlign: "center" }}>
+                  <CheckCircle2 size={18} color={col.color} style={{ opacity: 0.4, margin: "0 auto 6px" }} />
+                  <div style={{ fontSize: 12, color: C.gray }}>No tickets here</div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// B3-04  INVENTORY DASHBOARD
+// B3-04  INVENTORY — BAR / KITCHEN / GENERAL
 // ═══════════════════════════════════════════════════════════════════════════════
 
+type InvSection = "bar" | "kitchen" | "general";
+
 interface InvItem {
-  id: string; name: string; category: string;
-  current: number; min: number; unit: string; lastOrdered: string;
+  id: string; name: string; category: string; section: InvSection;
+  current: number; min: number; unit: string; lastOrdered: string; price?: number;
 }
 
-const INVENTORY: InvItem[] = [
-  // Linen
-  { id:"i1",  name:"Bath Towels (Large)",     category:"Linen",      current:180, min:100, unit:"pcs", lastOrdered:"15 Jun 2026" },
-  { id:"i2",  name:"Hand Towels",             category:"Linen",      current:42,  min:80,  unit:"pcs", lastOrdered:"10 Jun 2026" },
-  { id:"i3",  name:"Bed Sheets (King)",       category:"Linen",      current:95,  min:60,  unit:"sets", lastOrdered:"18 Jun 2026" },
-  { id:"i4",  name:"Bed Sheets (Queen)",      category:"Linen",      current:28,  min:50,  unit:"sets", lastOrdered:"05 Jun 2026" },
-  { id:"i5",  name:"Pillow Cases",            category:"Linen",      current:220, min:100, unit:"pcs", lastOrdered:"20 Jun 2026" },
-  // Toiletries
-  { id:"i6",  name:"Shampoo (50ml)",          category:"Toiletries", current:310, min:200, unit:"units", lastOrdered:"22 Jun 2026" },
-  { id:"i7",  name:"Body Lotion (50ml)",      category:"Toiletries", current:55,  min:150, unit:"units", lastOrdered:"01 Jun 2026" },
-  { id:"i8",  name:"Soap Bars (100g)",        category:"Toiletries", current:400, min:200, unit:"units", lastOrdered:"24 Jun 2026" },
-  { id:"i9",  name:"Dental Kits",            category:"Toiletries", current:180, min:100, unit:"kits", lastOrdered:"17 Jun 2026" },
-  { id:"i10", name:"Shower Caps",            category:"Toiletries", current:30,  min:100, unit:"pcs", lastOrdered:"28 May 2026" },
-  // F&B Supplies
-  { id:"i11", name:"Arabica Coffee (1kg)",   category:"F&B",        current:12,  min:20,  unit:"bags", lastOrdered:"20 Jun 2026" },
-  { id:"i12", name:"Assorted Tea Bags",      category:"F&B",        current:800, min:400, unit:"bags", lastOrdered:"15 Jun 2026" },
-  { id:"i13", name:"UHT Milk (1L)",          category:"F&B",        current:45,  min:30,  unit:"cartons", lastOrdered:"24 Jun 2026" },
-  { id:"i14", name:"Still Water (500ml)",    category:"F&B",        current:90,  min:120, unit:"bottles", lastOrdered:"23 Jun 2026" },
-  { id:"i15", name:"Fruit Juice (1L)",       category:"F&B",        current:18,  min:40,  unit:"cartons", lastOrdered:"10 Jun 2026" },
-  // Cleaning
-  { id:"i16", name:"Floor Cleaner (5L)",     category:"Cleaning",   current:22,  min:15,  unit:"bottles", lastOrdered:"18 Jun 2026" },
-  { id:"i17", name:"Disinfectant Spray",     category:"Cleaning",   current:8,   min:20,  unit:"cans", lastOrdered:"12 Jun 2026" },
-  { id:"i18", name:"Bin Liners (Medium)",    category:"Cleaning",   current:500, min:200, unit:"pcs", lastOrdered:"20 Jun 2026" },
+const INVENTORY_DATA: InvItem[] = [
+  // Bar
+  { id:"b1",  name:"Star Lager Beer (Crates)",  category:"Beers",    section:"bar",     current:12,  min:20,  unit:"crates",  lastOrdered:"28 Jun 2026", price:3600  },
+  { id:"b2",  name:"Heineken (Crates)",          category:"Beers",    section:"bar",     current:8,   min:15,  unit:"crates",  lastOrdered:"25 Jun 2026", price:4200  },
+  { id:"b3",  name:"Guinness Stout (Crates)",    category:"Beers",    section:"bar",     current:5,   min:10,  unit:"crates",  lastOrdered:"20 Jun 2026", price:3800  },
+  { id:"b4",  name:"Red Wine (Bottles)",         category:"Wine",     section:"bar",     current:18,  min:24,  unit:"bottles", lastOrdered:"22 Jun 2026", price:8500  },
+  { id:"b5",  name:"White Wine (Bottles)",       category:"Wine",     section:"bar",     current:14,  min:24,  unit:"bottles", lastOrdered:"22 Jun 2026", price:7500  },
+  { id:"b6",  name:"Champagne",                  category:"Wine",     section:"bar",     current:6,   min:12,  unit:"bottles", lastOrdered:"15 Jun 2026", price:25000 },
+  { id:"b7",  name:"Whisky (750ml)",             category:"Spirits",  section:"bar",     current:10,  min:12,  unit:"bottles", lastOrdered:"18 Jun 2026", price:18000 },
+  { id:"b8",  name:"Vodka (750ml)",              category:"Spirits",  section:"bar",     current:7,   min:10,  unit:"bottles", lastOrdered:"18 Jun 2026", price:15000 },
+  { id:"b9",  name:"Soft Drinks (Crates)",       category:"Mixers",   section:"bar",     current:20,  min:15,  unit:"crates",  lastOrdered:"27 Jun 2026", price:1800  },
+  { id:"b10", name:"Still Water (500ml)",        category:"Mixers",   section:"bar",     current:90,  min:120, unit:"bottles", lastOrdered:"25 Jun 2026", price:200   },
+  // Kitchen
+  { id:"k1",  name:"Rice (50kg bags)",           category:"Grains",   section:"kitchen", current:8,   min:15,  unit:"bags",    lastOrdered:"20 Jun 2026", price:45000 },
+  { id:"k2",  name:"Vegetable Oil (25L)",        category:"Oils",     section:"kitchen", current:6,   min:10,  unit:"kegs",    lastOrdered:"22 Jun 2026", price:32000 },
+  { id:"k3",  name:"Chicken (Frozen, kg)",       category:"Proteins", section:"kitchen", current:45,  min:60,  unit:"kg",      lastOrdered:"28 Jun 2026", price:3200  },
+  { id:"k4",  name:"Beef (kg)",                  category:"Proteins", section:"kitchen", current:25,  min:40,  unit:"kg",      lastOrdered:"27 Jun 2026", price:4500  },
+  { id:"k5",  name:"Fresh Tilapia (kg)",         category:"Proteins", section:"kitchen", current:12,  min:25,  unit:"kg",      lastOrdered:"29 Jun 2026", price:3800  },
+  { id:"k6",  name:"Tomatoes (kg)",              category:"Produce",  section:"kitchen", current:15,  min:20,  unit:"kg",      lastOrdered:"29 Jun 2026", price:800   },
+  { id:"k7",  name:"Onions (kg)",                category:"Produce",  section:"kitchen", current:20,  min:15,  unit:"kg",      lastOrdered:"25 Jun 2026", price:600   },
+  { id:"k8",  name:"Palm Oil (25L)",             category:"Oils",     section:"kitchen", current:4,   min:8,   unit:"kegs",    lastOrdered:"20 Jun 2026", price:22000 },
+  { id:"k9",  name:"Dry Pepper (kg)",            category:"Spices",   section:"kitchen", current:5,   min:8,   unit:"kg",      lastOrdered:"15 Jun 2026", price:2500  },
+  { id:"k10", name:"Seasoning Cubes",            category:"Spices",   section:"kitchen", current:200, min:300, unit:"pcs",     lastOrdered:"22 Jun 2026", price:50    },
+  // General
+  { id:"g1",  name:"Bath Towels (Large)",        category:"Linen",      section:"general", current:180, min:100, unit:"pcs",   lastOrdered:"15 Jun 2026" },
+  { id:"g2",  name:"Hand Towels",                category:"Linen",      section:"general", current:42,  min:80,  unit:"pcs",   lastOrdered:"10 Jun 2026" },
+  { id:"g3",  name:"Bed Sheets (King)",          category:"Linen",      section:"general", current:95,  min:60,  unit:"sets",  lastOrdered:"18 Jun 2026" },
+  { id:"g4",  name:"Shampoo (50ml)",             category:"Toiletries", section:"general", current:310, min:200, unit:"units", lastOrdered:"22 Jun 2026" },
+  { id:"g5",  name:"Body Lotion (50ml)",         category:"Toiletries", section:"general", current:55,  min:150, unit:"units", lastOrdered:"01 Jun 2026" },
+  { id:"g6",  name:"Floor Cleaner (5L)",         category:"Cleaning",   section:"general", current:22,  min:15,  unit:"bottles",lastOrdered:"18 Jun 2026" },
+  { id:"g7",  name:"Disinfectant Spray",         category:"Cleaning",   section:"general", current:8,   min:20,  unit:"cans",  lastOrdered:"12 Jun 2026" },
+  { id:"g8",  name:"Bin Liners (Medium)",        category:"Cleaning",   section:"general", current:500, min:200, unit:"pcs",   lastOrdered:"20 Jun 2026" },
 ];
 
-const CAT_ICONS: Record<string, React.ReactNode> = {
-  Linen:     <Layers size={16} />,
-  Toiletries:<Coffee size={16} />,
-  "F&B":     <Utensils size={16} />,
-  Cleaning:  <RefreshCw size={16} />,
+const SECTION_INFO: Record<InvSection, { label: string; Icon: any; color: string }> = {
+  bar:     { label: "Bar",     Icon: Wine,           color: C.red      },
+  kitchen: { label: "Kitchen", Icon: UtensilsCrossed, color: C.amber    },
+  general: { label: "General", Icon: Package,         color: "#1565C0"  },
 };
 
 function InventoryDashboard() {
-  const [items, setItems] = useState<InvItem[]>(INVENTORY);
+  const [section, setSection] = useState<InvSection>("bar");
+  const [showPrices, setShowPrices] = useState(true);
   const [filterCat, setFilterCat] = useState("All");
   const [reordered, setReordered] = useState<Set<string>>(new Set());
-  const categories = ["All", ...Array.from(new Set(INVENTORY.map(i => i.category)))];
 
-  const isLow = (item: InvItem) => item.current < item.min;
-  const pct = (item: InvItem) => Math.min(100, Math.round((item.current / (item.min * 2)) * 100));
+  const sectionItems = INVENTORY_DATA.filter(i => i.section === section);
+  const categories = ["All", ...Array.from(new Set(sectionItems.map(i => i.category)))];
+  const filtered = sectionItems.filter(i => filterCat === "All" || i.category === filterCat);
+  const lowCount = sectionItems.filter(i => i.current < i.min).length;
 
-  const filtered = items.filter(i => filterCat === "All" || i.category === filterCat);
-  const lowCount = items.filter(isLow).length;
-
-  const handleReorder = (id: string) => {
-    setReordered(prev => new Set([...prev, id]));
-  };
+  const isLow = (i: InvItem) => i.current < i.min;
+  const pct = (i: InvItem) => Math.min(100, Math.round((i.current / (i.min * 2)) * 100));
 
   return (
     <div style={{ padding: 32 }}>
-      {/* Summary cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+      {/* Section tabs */}
+      <div style={{ display: "flex", alignItems: "center", borderBottom: `1px solid ${C.beige}40`, marginBottom: 24 }}>
+        {(["bar","kitchen","general"] as InvSection[]).map(s => {
+          const info = SECTION_INFO[s];
+          const Icon = info.Icon;
+          return (
+            <button key={s} onClick={() => { setSection(s); setFilterCat("All"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 24px", border: "none", borderBottom: `3px solid ${section === s ? info.color : "transparent"}`, marginBottom: -1, cursor: "pointer", background: "transparent", fontSize: 14, fontWeight: 600, color: section === s ? info.color : C.gray, transition: "all 0.15s" }}>
+              <Icon size={16} />{info.label}
+            </button>
+          );
+        })}
+        <div style={{ flex: 1 }} />
+        <button onClick={() => setShowPrices(p => !p)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 8, border: `1px solid ${C.beige}`, background: "transparent", cursor: "pointer", fontSize: 12, color: showPrices ? C.gold : C.gray, marginBottom: 4 }}>
+          <Eye size={13} />{showPrices ? "Hide Prices" : "Show Prices (Manager)"}
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total SKUs", value: items.length, icon: <Package size={20} />, color: C.gold },
-          { label: "Low Stock Items", value: lowCount, icon: <AlertTriangle size={20} />, color: C.amber },
-          { label: "Reorders Pending", value: reordered.size, icon: <ShoppingCart size={20} />, color: C.green },
-          { label: "Categories", value: categories.length - 1, icon: <Layers size={20} />, color: "#1565C0" },
+          { label: "Total SKUs",    value: sectionItems.length, color: C.gold    },
+          { label: "Low Stock",     value: lowCount,            color: C.red     },
+          { label: "Categories",    value: categories.length-1, color: "#1565C0" },
+          { label: "Reorders Out",  value: reordered.size,      color: C.green   },
         ].map(s => (
-          <div key={s.label} style={{
-            background: C.white, borderRadius: 8, padding: "20px 24px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)", display: "flex", alignItems: "center", gap: 16
-          }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 8, background: s.color + "18",
-              display: "flex", alignItems: "center", justifyContent: "center", color: s.color
-            }}>{s.icon}</div>
+          <div key={s.label} style={{ background: C.white, borderRadius: 8, padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: s.color + "18", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: s.color }} />
+            </div>
             <div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: C.charcoal }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: C.gray }}>{s.label}</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: C.charcoal }}>{s.value}</div>
+              <div style={{ fontSize: 11, color: C.gray }}>{s.label}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Category filter */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         {categories.map(cat => (
-          <button key={cat} onClick={() => setFilterCat(cat)} style={{
-            padding: "6px 16px", borderRadius: 999, border: "none", cursor: "pointer",
-            fontSize: 12, fontWeight: 500,
-            background: filterCat === cat ? C.gold : C.white,
-            color: filterCat === cat ? "#fff" : C.gray,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
-          }}>
+          <button key={cat} onClick={() => setFilterCat(cat)} style={{ padding: "5px 14px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, background: filterCat === cat ? C.gold : C.white, color: filterCat === cat ? "#fff" : C.gray, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
             {cat}
           </button>
         ))}
@@ -853,11 +786,8 @@ function InventoryDashboard() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: C.sidebar }}>
-              {["Item", "Category", "Current Stock", "Min Required", "Stock Level", "Last Ordered", "Action"].map(h => (
-                <th key={h} style={{
-                  padding: "12px 16px", textAlign: "left", fontSize: 11,
-                  fontWeight: 600, color: "rgba(255,255,255,0.7)", letterSpacing: "0.04em"
-                }}>{h}</th>
+              {["Item","Category","Current Stock","Min Required","Stock Level","Last Ordered",...(showPrices && section !== "general" ? ["Unit Price"] : []),"Action"].map(h => (
+                <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", letterSpacing: "0.04em" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -867,61 +797,43 @@ function InventoryDashboard() {
               const p = pct(item);
               const ordered = reordered.has(item.id);
               return (
-                <tr key={item.id} style={{
-                  background: i % 2 === 1 ? `${C.beige}18` : C.white,
-                  borderBottom: `1px solid ${C.beige}40`,
-                  ...(low && !ordered ? { background: "#FFF8E1" } : {})
-                }}>
+                <tr key={item.id} style={{ background: low && !ordered ? "#FFF8E1" : i%2===1 ? `${C.beige}18` : C.white, borderBottom: `1px solid ${C.beige}40` }}>
                   <td style={{ padding: "14px 16px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       {low && !ordered && <AlertTriangle size={13} color={C.amber} />}
                       <span style={{ fontSize: 13, fontWeight: 500, color: C.charcoal }}>{item.name}</span>
                     </div>
                   </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, color: C.gray, fontSize: 12 }}>
-                      {CAT_ICONS[item.category]}
-                      {item.category}
-                    </div>
-                  </td>
+                  <td style={{ padding: "14px 16px", fontSize: 12, color: C.gray }}>{item.category}</td>
                   <td style={{ padding: "14px 16px" }}>
                     <span style={{ fontSize: 14, fontWeight: 600, color: low && !ordered ? C.amber : C.charcoal }}>
                       {item.current} <span style={{ fontSize: 11, color: C.gray, fontWeight: 400 }}>{item.unit}</span>
                     </span>
                   </td>
-                  <td style={{ padding: "14px 16px", fontSize: 13, color: C.gray }}>
-                    {item.min} {item.unit}
-                  </td>
+                  <td style={{ padding: "14px 16px", fontSize: 13, color: C.gray }}>{item.min} {item.unit}</td>
                   <td style={{ padding: "14px 16px", width: 140 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ flex: 1, height: 6, background: "#E0E0E0", borderRadius: 3, overflow: "hidden" }}>
-                        <div style={{
-                          height: "100%", borderRadius: 3,
-                          width: `${p}%`,
-                          background: low ? C.amber : C.green,
-                          transition: "width 0.3s"
-                        }} />
+                        <div style={{ height: "100%", borderRadius: 3, width: `${p}%`, background: low ? C.amber : C.green, transition: "width 0.3s" }} />
                       </div>
                       <span style={{ fontSize: 11, color: C.gray, width: 30 }}>{p}%</span>
                     </div>
                   </td>
                   <td style={{ padding: "14px 16px", fontSize: 12, color: C.gray }}>{item.lastOrdered}</td>
+                  {showPrices && section !== "general" && (
+                    <td style={{ padding: "14px 16px", fontSize: 13, fontWeight: 600, color: C.gold }}>
+                      {item.price ? `₦${item.price.toLocaleString()}` : "—"}
+                    </td>
+                  )}
                   <td style={{ padding: "14px 16px" }}>
                     {low && !ordered ? (
-                      <button onClick={() => handleReorder(item.id)} style={{
-                        background: C.amber, color: "#fff", border: "none", borderRadius: 6,
-                        padding: "6px 14px", fontSize: 11, fontWeight: 600, cursor: "pointer",
-                        display: "flex", alignItems: "center", gap: 5
-                      }}>
+                      <button onClick={() => setReordered(prev => new Set([...prev, item.id]))} style={{ background: C.amber, color: "#fff", border: "none", borderRadius: 6, padding: "6px 14px", fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
                         <ShoppingCart size={12} /> Reorder
                       </button>
                     ) : ordered ? (
                       <span style={{ fontSize: 11, color: C.green, fontWeight: 600 }}>✓ Ordered</span>
                     ) : (
-                      <button style={{
-                        background: "transparent", color: C.gray, border: `1px solid ${C.beige}`,
-                        borderRadius: 6, padding: "5px 12px", fontSize: 11, cursor: "pointer"
-                      }}>View</button>
+                      <button style={{ background: "transparent", color: C.gray, border: `1px solid ${C.beige}`, borderRadius: 6, padding: "5px 12px", fontSize: 11, cursor: "pointer" }}>View</button>
                     )}
                   </td>
                 </tr>
@@ -1334,10 +1246,14 @@ function StaffShiftSchedule() {
 export default function BackOfHouseApp() {
   const [activeScreen, setActiveScreen] = useState("b3-01");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [selectedDept, setSelectedDept] = useState<string|null>(null);
+
+  const handleDeptSelect = (dept: string) => { setSelectedDept(dept); setActiveScreen("b3-02"); };
+  const handleBackToDeptBoard = () => setActiveScreen("b3-01");
 
   const SCREENS: Record<string, React.ReactNode> = {
-    "b3-01": <HousekeepingTaskBoard />,
-    "b3-02": <HousekeepingAssignmentGrid />,
+    "b3-01": <HousekeepingDeptBoard onSelectDept={handleDeptSelect} />,
+    "b3-02": <HousekeepingAssignmentGrid dept={selectedDept} onBack={handleBackToDeptBoard} />,
     "b3-03": <MaintenanceBoard />,
     "b3-04": <InventoryDashboard />,
     "b3-05": <RestaurantTablePlan />,
