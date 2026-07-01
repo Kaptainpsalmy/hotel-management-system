@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import {
   ScanLine, Key, Printer, CheckCircle, ChevronRight, ChevronLeft,
   Search, Bell, BedDouble, Calendar, Receipt, CreditCard, Wallet,
@@ -9,6 +10,8 @@ import {
   MoreHorizontal, LogOut, TrendingUp, TrendingDown,
   ClipboardList, Users, RefreshCw, Pencil, Download,
   Shield, Star, Filter, MapPin, Package, Wind,
+  Brush, ShoppingBag, UtensilsCrossed, LayoutDashboard, ArrowLeft,
+  UserCheck, ShoppingCart, DollarSign, Minus,
 } from "lucide-react";
 
 // ─── Brand palette ────────────────────────────────────────────────────────────
@@ -26,7 +29,7 @@ const C = {
 } as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Screen = "B201"|"B202"|"B203"|"B204"|"B205"|"B206";
+type Screen = "B201"|"B202"|"B203"|"B205"|"REQUESTS"|"GUESTS"|"SALES";
 type RoomStatus = "available"|"occupied"|"checking-out"|"cleaning"|"out-of-order"|"reserved";
 type Priority = "urgent"|"high"|"standard";
 type ReqType = "room-service"|"maintenance"|"housekeeping"|"concierge"|"front-desk";
@@ -184,13 +187,14 @@ function QRCode({size=160,fg="#2D2D2D"}:{size?:number;fg?:string}) {
 }
 
 // ─── Layout Shell ──────────────────────────────────────────────────────────────
-const NAV: {id:Screen;label:string;Icon:any}[] = [
+const NAV: {id:Screen;label:string;Icon:any;badge?:number}[] = [
+  {id:"B205",label:"Dashboard",Icon:Home},
   {id:"B201",label:"Guest Check-In",Icon:ScanLine},
   {id:"B202",label:"Check-Out & Invoice",Icon:LogOut},
   {id:"B203",label:"Room Status Board",Icon:BedDouble},
-  {id:"B204",label:"Invoice Detail",Icon:Receipt},
-  {id:"B205",label:"Guest Requests",Icon:MessageSquare},
-  {id:"B206",label:"QR Print Card",Icon:QrCode},
+  {id:"REQUESTS",label:"Guest Requests",Icon:MessageSquare,badge:5},
+  {id:"GUESTS",label:"Guest Management",Icon:Users},
+  {id:"SALES",label:"Sales",Icon:ShoppingBag},
 ];
 
 function Sidebar({active,onNav}:{active:Screen;onNav:(s:Screen)=>void}) {
@@ -1068,13 +1072,14 @@ const STATUS_COLOR: Record<RoomStatus,{bg:string;text:string;border:string;dot:s
   available:      {bg:"#E8F5E9",text:"#2E7D32",border:"#A5D6A7",dot:"#2E7D32"},
   occupied:       {bg:"#FFF8E1",text:"#B8860B",border:"#FFD54F",dot:"#B8860B"},
   "checking-out": {bg:"#FFF3E0",text:"#F4A300",border:"#FFCC02",dot:"#F4A300"},
-  cleaning:       {bg:"#F5F5F5",text:"#6C757D",border:"#BDBDBD",dot:"#6C757D"},
+  cleaning:       {bg:"#FFF9E6",text:"#B8860B",border:"#FFD54F",dot:"#F4A300"},
   "out-of-order": {bg:"#FFEBEE",text:"#D32F2F",border:"#EF9A9A",dot:"#D32F2F"},
   reserved:       {bg:"#F5EFE6",text:"#4E342E",border:"#D6C5A4",dot:"#D6C5A4"},
 };
 
 function B203() {
   const [selected, setSelected] = useState<Room|null>(null);
+  const [roomFilter, setRoomFilter] = useState<"all"|"available"|"occupied">("all");
   const floors = [1,2,3,4,5];
   const statusCounts = ROOMS.reduce((acc,r)=>({...acc,[r.status]:(acc[r.status]||0)+1}),{} as Record<string,number>);
 
@@ -1082,18 +1087,32 @@ function B203() {
     <div className="flex-1 flex flex-col overflow-hidden" style={{backgroundColor:C.ivory}}>
       <PageHdr title="Room Status Board" crumbs={["Front Desk","Room Status"]} action={{label:"Refresh",Icon:RefreshCw}}/>
 
-      {/* Legend + summary */}
-      <div className="px-8 py-4 flex items-center gap-4 flex-wrap border-b" style={{borderColor:"rgba(78,52,46,0.08)"}}>
-        {Object.entries(STATUS_COLOR).map(([status,cfg])=>(
-          <div key={status} className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{backgroundColor:cfg.dot}}/>
-            <span className="text-xs font-medium capitalize" style={{color:C.gray}}>
-              {status.replace("-"," ")} ({statusCounts[status]||0})
-            </span>
-          </div>
+      {/* Filter tabs */}
+      <div className="px-8 pt-3 flex items-center gap-2 border-b" style={{borderColor:"rgba(78,52,46,0.08)",backgroundColor:"white"}}>
+        {([["all","All Rooms"],["available","Available"],["occupied","Occupied"]] as const).map(([val,lbl])=>(
+          <button key={val} onClick={()=>setRoomFilter(val)}
+            className="px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 -mb-px transition-colors"
+            style={{
+              color:roomFilter===val?C.gold:C.gray,
+              borderColor:roomFilter===val?C.gold:"transparent",
+              backgroundColor:"transparent",
+            }}>
+            {lbl}
+            {val==="available" && <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs"
+              style={{backgroundColor:"#E8F5E9",color:"#2E7D32"}}>{statusCounts["available"]||0}</span>}
+            {val==="occupied" && <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs"
+              style={{backgroundColor:"#FFF8E1",color:"#B8860B"}}>{statusCounts["occupied"]||0}</span>}
+          </button>
         ))}
-        <div className="ml-auto text-xs font-semibold" style={{color:C.gold}}>
-          {ROOMS.length} rooms total · {statusCounts["available"]||0} available now
+        <div className="ml-auto pb-2 flex items-center gap-4 flex-wrap">
+          {Object.entries(STATUS_COLOR).map(([status,cfg])=>(
+            <div key={status} className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{backgroundColor:cfg.dot}}/>
+              <span className="text-xs font-medium capitalize" style={{color:C.gray}}>
+                {status.replace("-"," ")} ({statusCounts[status]||0})
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -1101,7 +1120,7 @@ function B203() {
         {/* Grid */}
         <div className="flex-1 overflow-y-auto p-6">
           {floors.map(floor=>{
-            const floorRooms = ROOMS.filter(r=>r.floor===floor);
+            const floorRooms = ROOMS.filter(r=>r.floor===floor&&(roomFilter==="all"||r.status===roomFilter));
             if(!floorRooms.length) return null;
             const floorLabel = floor<=3?"Floor "+floor:floor===4?"Suites (Floor 4)":"Penthouse Suites";
             return (
@@ -2005,17 +2024,281 @@ function B206() {
   );
 }
 
+// ─── Sales data ────────────────────────────────────────────────────────────────
+type SalesTab = "bar"|"kitchen"|"hotel";
+const MENU_ITEMS: Record<SalesTab,{id:string;name:string;price:number;cat:string}[]> = {
+  bar:[
+    {id:"b1",name:"Star Lager Beer",price:1500,cat:"Drinks"},
+    {id:"b2",name:"Heineken",price:1800,cat:"Drinks"},
+    {id:"b3",name:"Red Wine (Glass)",price:3500,cat:"Wine"},
+    {id:"b4",name:"White Wine (Glass)",price:3500,cat:"Wine"},
+    {id:"b5",name:"Chapman",price:2000,cat:"Mocktails"},
+    {id:"b6",name:"Fruit Punch",price:1800,cat:"Mocktails"},
+    {id:"b7",name:"Bitter Lemon",price:1200,cat:"Soft Drinks"},
+    {id:"b8",name:"Malta Guinness",price:1200,cat:"Soft Drinks"},
+  ],
+  kitchen:[
+    {id:"k1",name:"Jollof Rice & Chicken",price:4500,cat:"Rice"},
+    {id:"k2",name:"Fried Rice & Turkey",price:5000,cat:"Rice"},
+    {id:"k3",name:"Pepper Soup (Goat)",price:5500,cat:"Soups"},
+    {id:"k4",name:"Egusi Soup & Eba",price:3800,cat:"Soups"},
+    {id:"k5",name:"Moi Moi",price:1500,cat:"Sides"},
+    {id:"k6",name:"Fried Plantain",price:1200,cat:"Sides"},
+    {id:"k7",name:"Grilled Tilapia",price:7500,cat:"Grill"},
+    {id:"k8",name:"Suya Platter",price:4000,cat:"Grill"},
+  ],
+  hotel:[
+    {id:"h1",name:"Room Service Fee",price:1500,cat:"Service"},
+    {id:"h2",name:"Laundry (per item)",price:1500,cat:"Housekeeping"},
+    {id:"h3",name:"Airport Transfer",price:15000,cat:"Transport"},
+    {id:"h4",name:"Minibar Restock",price:5000,cat:"In-Room"},
+    {id:"h5",name:"Extra Pillow / Linen",price:500,cat:"In-Room"},
+    {id:"h6",name:"Late Check-Out Fee",price:10000,cat:"Charges"},
+  ],
+};
+
+// ─── Guest Requests screen ─────────────────────────────────────────────────────
+function ScreenRequests() {
+  const [reqs,setReqs] = useState(INITIAL_REQUESTS);
+  const ack = (id:string) => setReqs(p=>p.map(r=>r.id===id?{...r,status:"acknowledged" as const}:r));
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden" style={{backgroundColor:C.ivory}}>
+      <PageHdr title="Guest Requests" crumbs={["Front Desk","Guest Requests"]} action={{label:"Refresh",Icon:RefreshCw}}/>
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-3xl mx-auto space-y-3">
+          {reqs.map(r=>(
+            <div key={r.id} className="rounded-xl p-4 border flex gap-4 items-start"
+              style={{backgroundColor:"white",borderColor:"rgba(78,52,46,0.1)",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="font-semibold text-sm" style={{color:C.charcoal}}>{r.guestName}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                    style={{backgroundColor:statusCfg(r.priority).bg,color:statusCfg(r.priority).text}}>
+                    {r.priority}
+                  </span>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+                    style={{backgroundColor:C.beige,color:C.brown}}>Room {r.room}</span>
+                </div>
+                <p className="text-sm leading-relaxed" style={{color:C.charcoal}}>{r.description}</p>
+                <div className="text-xs mt-1.5" style={{color:C.gray}}>{r.minutesAgo} min ago · {r.type}</div>
+              </div>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <StatusBadge status={r.status}/>
+                {r.status==="pending"&&(
+                  <button onClick={()=>ack(r.id)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+                    style={{backgroundColor:C.gold,color:"white"}}>
+                    Acknowledge
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Guest Management screen ───────────────────────────────────────────────────
+function ScreenGuests() {
+  const [search,setSearch] = useState("");
+  const inHouse = ROOMS.filter(r=>r.guest&&(r.status==="occupied"||r.status==="checking-out"));
+  const filtered = inHouse.filter(r=>
+    r.guest!.name.toLowerCase().includes(search.toLowerCase())||r.id.includes(search)
+  );
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden" style={{backgroundColor:C.ivory}}>
+      <PageHdr title="Guest Management" crumbs={["Front Desk","Guests"]}/>
+      <div className="px-8 py-3 border-b flex items-center gap-3"
+        style={{borderColor:"rgba(78,52,46,0.08)",backgroundColor:"white"}}>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{color:C.gray}}/>
+          <input className="pl-9 pr-4 py-2 rounded-lg border text-sm outline-none w-64"
+            placeholder="Search guest or room…"
+            value={search} onChange={e=>setSearch(e.target.value)}
+            style={{borderColor:"rgba(78,52,46,0.15)",backgroundColor:C.ivory,color:C.charcoal}}/>
+        </div>
+        <span className="text-sm" style={{color:C.gray}}>{filtered.length} in-house guests</span>
+      </div>
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-4xl mx-auto space-y-4">
+          {filtered.map(room=>{
+            const g=room.guest!;
+            const gReqs=INITIAL_REQUESTS.filter(q=>q.room===room.id);
+            const initials=g.name.split(" ").map((n:string)=>n[0]).join("").slice(0,2);
+            return (
+              <div key={room.id} className="rounded-xl border overflow-hidden"
+                style={{backgroundColor:"white",borderColor:"rgba(78,52,46,0.1)",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
+                <div className="px-5 py-4 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                    style={{backgroundColor:C.brown}}>{initials}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm" style={{color:C.charcoal}}>{g.name}</div>
+                    <div className="text-xs mt-0.5" style={{color:C.gray}}>
+                      Room {room.id} · {room.type}{room.view?` · ${room.view} View`:""} · {g.checkIn} → {g.checkOut} ({g.nights} nights)
+                    </div>
+                  </div>
+                  <StatusBadge status={room.status}/>
+                  <span className="text-xs px-2 py-1 rounded border font-mono"
+                    style={{color:C.gray,borderColor:"rgba(78,52,46,0.15)"}}>{g.reservation}</span>
+                </div>
+                {gReqs.length>0&&(
+                  <div className="px-5 pb-4 border-t pt-3" style={{borderColor:"rgba(78,52,46,0.06)"}}>
+                    <div className="text-xs font-semibold mb-2" style={{color:C.gold}}>
+                      Open Requests ({gReqs.length})
+                    </div>
+                    <div className="space-y-1.5">
+                      {gReqs.map(req=>(
+                        <div key={req.id} className="flex items-center gap-2 text-xs">
+                          <StatusBadge status={req.status}/>
+                          <span className="flex-1 truncate" style={{color:C.charcoal}}>{req.description}</span>
+                          <span style={{color:C.gray}}>{req.minutesAgo}m ago</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Sales screen ──────────────────────────────────────────────────────────────
+function ScreenSales() {
+  const [tab,setTab] = useState<SalesTab>("bar");
+  const [cart,setCart] = useState<{id:string;name:string;price:number;qty:number}[]>([]);
+  const [roomNum,setRoomNum] = useState("");
+  const items = MENU_ITEMS[tab];
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+
+  const addItem = (item:{id:string;name:string;price:number}) =>
+    setCart(p=>{
+      const ex=p.find(c=>c.id===item.id);
+      return ex?p.map(c=>c.id===item.id?{...c,qty:c.qty+1}:c):[...p,{...item,qty:1}];
+    });
+  const removeItem = (id:string) =>
+    setCart(p=>p.map(c=>c.id===id?{...c,qty:Math.max(0,c.qty-1)}:c).filter(c=>c.qty>0));
+  const qtyFor = (id:string) => cart.find(c=>c.id===id)?.qty||0;
+  const TABS:[SalesTab,string,any][] = [
+    ["bar","Bar",Coffee],["kitchen","Kitchen",UtensilsCrossed],["hotel","Hotel Charges",Hotel]
+  ];
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden" style={{backgroundColor:C.ivory}}>
+      <PageHdr title="Sales" crumbs={["Front Desk","Sales"]}/>
+      <div className="flex gap-0 border-b px-6"
+        style={{backgroundColor:"white",borderColor:"rgba(78,52,46,0.08)"}}>
+        {TABS.map(([id,lbl,Icon])=>(
+          <button key={id} onClick={()=>setTab(id)}
+            className="flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors"
+            style={{color:tab===id?C.gold:C.gray,borderColor:tab===id?C.gold:"transparent"}}>
+            <Icon className="w-4 h-4"/>{lbl}
+          </button>
+        ))}
+      </div>
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-5">
+          <div className="grid gap-3" style={{gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))"}}>
+            {items.map(item=>{
+              const qty=qtyFor(item.id);
+              return (
+                <div key={item.id} className="rounded-xl border p-4 flex flex-col gap-2"
+                  style={{backgroundColor:"white",borderColor:"rgba(78,52,46,0.1)",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full self-start"
+                    style={{backgroundColor:C.beige,color:C.brown}}>{item.cat}</span>
+                  <span className="font-semibold text-sm flex-1" style={{color:C.charcoal}}>{item.name}</span>
+                  <span className="font-bold text-sm" style={{color:C.gold}}>{fmt(item.price)}</span>
+                  {qty>0?(
+                    <div className="flex items-center gap-2 mt-1">
+                      <button onClick={()=>removeItem(item.id)}
+                        className="w-7 h-7 rounded-lg border flex items-center justify-center"
+                        style={{borderColor:"rgba(78,52,46,0.2)"}}>
+                        <Minus className="w-3 h-3" style={{color:C.brown}}/>
+                      </button>
+                      <span className="flex-1 text-center font-semibold text-sm" style={{color:C.charcoal}}>{qty}</span>
+                      <button onClick={()=>addItem(item)}
+                        className="w-7 h-7 rounded-lg border flex items-center justify-center"
+                        style={{borderColor:"rgba(78,52,46,0.2)"}}>
+                        <Plus className="w-3 h-3" style={{color:C.brown}}/>
+                      </button>
+                    </div>
+                  ):(
+                    <button onClick={()=>addItem(item)}
+                      className="mt-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1"
+                      style={{backgroundColor:C.gold,color:"white"}}>
+                      <Plus className="w-3 h-3"/>Add
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="w-72 border-l flex flex-col"
+          style={{backgroundColor:"white",borderColor:"rgba(78,52,46,0.08)"}}>
+          <div className="px-5 py-4 border-b" style={{borderColor:"rgba(78,52,46,0.08)"}}>
+            <div className="font-semibold text-sm mb-3" style={{color:C.charcoal}}>Order Summary</div>
+            <div className="flex items-center gap-2">
+              <BedDouble className="w-4 h-4 shrink-0" style={{color:C.gray}}/>
+              <input className="flex-1 text-sm border-b pb-1 outline-none bg-transparent"
+                placeholder="Room number…" value={roomNum}
+                onChange={e=>setRoomNum(e.target.value)}
+                style={{borderColor:"rgba(78,52,46,0.2)",color:C.charcoal}}/>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+            {cart.length===0?(
+              <div className="text-sm text-center py-8" style={{color:C.gray}}>No items added yet</div>
+            ):cart.map(c=>(
+              <div key={c.id} className="flex items-center gap-2 text-sm">
+                <span className="w-6 h-6 rounded text-center text-xs font-bold flex items-center justify-center"
+                  style={{backgroundColor:C.beige,color:C.gold}}>{c.qty}</span>
+                <span className="flex-1 text-xs leading-tight" style={{color:C.charcoal}}>{c.name}</span>
+                <span className="text-xs font-medium" style={{color:C.gray}}>{fmt(c.price*c.qty)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="px-5 py-4 border-t space-y-3" style={{borderColor:"rgba(78,52,46,0.08)"}}>
+            <div className="flex justify-between font-bold">
+              <span style={{color:C.charcoal}}>Total</span>
+              <span style={{color:C.gold}}>{fmt(total)}</span>
+            </div>
+            <button disabled={cart.length===0||!roomNum}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 transition-opacity"
+              style={{backgroundColor:C.gold,color:"white"}}>
+              Charge to Room {roomNum||"—"}
+            </button>
+            <button disabled={cart.length===0} onClick={()=>setCart([])}
+              className="w-full py-2 rounded-xl text-sm font-medium border disabled:opacity-40"
+              style={{borderColor:"rgba(78,52,46,0.2)",color:C.gray}}>
+              Clear Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Root App ──────────────────────────────────────────────────────────────────
 export default function FrontDeskApp() {
-  const [active, setActive] = useState<Screen>("B201");
+  const [active, setActive] = useState<Screen>("B205");
 
   const screens: Record<Screen, JSX.Element> = {
     B201: <B201/>,
     B202: <B202/>,
     B203: <B203/>,
-    B204: <B204/>,
     B205: <B205/>,
-    B206: <B206/>,
+    REQUESTS: <ScreenRequests/>,
+    GUESTS: <ScreenGuests/>,
+    SALES: <ScreenSales/>,
   };
 
   return (
