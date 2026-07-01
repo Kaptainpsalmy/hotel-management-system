@@ -55,6 +55,20 @@ export function DashboardLayout() {
             </button>
           </div>
 
+          {/* Back to HMS Home */}
+          <div className="px-3 pt-4 pb-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <Link
+              to="/"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors hover:bg-white/10"
+              style={{ color: '#D6C5A4', textDecoration: 'none' }}
+            >
+              <Home className="w-4 h-4" style={{ flexShrink: 0 }} />
+              {!sidebarCollapsed && (
+                <span style={{ fontFamily: 'Inter', fontSize: '13px', fontWeight: 500 }}>← HMS Home</span>
+              )}
+            </Link>
+          </div>
+
           {/* Navigation */}
           <nav className="flex-1 py-6">
             {navItems.map((item) => (

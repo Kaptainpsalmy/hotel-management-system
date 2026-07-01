@@ -1,4 +1,5 @@
 ﻿import { useState, useRef, useCallback } from "react";
+import { useNavigate } from "react-router";
 import {
   LayoutGrid, Wrench, Package, UtensilsCrossed, Calendar,
   Bell, Search, Users, RefreshCw, Plus, MoreVertical,
@@ -93,6 +94,7 @@ function Sidebar({ active, onNav, collapsed, onToggle }: {
   active: string; onNav: (id: string) => void;
   collapsed: boolean; onToggle: () => void;
 }) {
+  const nav = useNavigate();
   const BOHopen = NAV_SECTIONS.filter(n => n.batch === "BOH").some(n => n.id === active);
   return (
     <aside style={{
@@ -106,18 +108,28 @@ function Sidebar({ active, onNav, collapsed, onToggle }: {
         padding: collapsed ? "0 16px" : "0 20px", gap: 10,
         borderBottom: "1px solid rgba(255,255,255,0.08)"
       }}>
-        <div style={{
+        <button onClick={() => nav("/")} title="Back to HMS Home" style={{
           width: 32, height: 32, borderRadius: 8,
           background: C.gold, display: "flex", alignItems: "center",
-          justifyContent: "center", flexShrink: 0
+          justifyContent: "center", flexShrink: 0, border: "none", cursor: "pointer"
         }}>
           <BedDouble size={18} color="#fff" />
-        </div>
+        </button>
         {!collapsed && (
-          <div>
-            <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>Aryhills</div>
-            <div style={{ color: C.beige, fontSize: 10, lineHeight: 1.2 }}>Hotel Management</div>
-          </div>
+          <>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>Aryhills</div>
+              <div style={{ color: C.beige, fontSize: 10, lineHeight: 1.2 }}>Back of House</div>
+            </div>
+            <button onClick={() => nav("/")} title="Back to HMS Home" style={{
+              background: "transparent", border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+              color: C.beige, opacity: 0.7
+            }}>
+              <ChevronLeft size={16} />
+            </button>
+          </>
         )}
       </div>
 
@@ -273,6 +285,7 @@ function TopHeader() {
 }
 
 function PageHeader({ screenId, onAction }: { screenId: string; onAction: () => void }) {
+  const nav = useNavigate();
   const p = PAGE_TITLES[screenId];
   if (!p) return null;
   return (
@@ -283,6 +296,14 @@ function PageHeader({ screenId, onAction }: { screenId: string; onAction: () => 
     }}>
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+          <button onClick={() => nav("/")} style={{
+            display: "flex", alignItems: "center", gap: 4,
+            background: "transparent", border: "none", cursor: "pointer", padding: 0, opacity: 0.85
+          }}>
+            <Home size={12} color={C.gold} />
+            <span style={{ fontSize: 12, color: C.gold, fontWeight: 500 }}>HMS</span>
+          </button>
+          <ChevronRight size={12} color={C.gray} />
           {p.breadcrumb.map((b, i) => (
             <span key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
               {i > 0 && <ChevronRight size={12} color={C.gray} />}

@@ -198,17 +198,24 @@ const NAV: {id:Screen;label:string;Icon:any;badge?:number}[] = [
 ];
 
 function Sidebar({active,onNav}:{active:Screen;onNav:(s:Screen)=>void}) {
+  const nav = useNavigate();
   return (
     <div className="w-60 flex-shrink-0 flex flex-col h-full" style={{backgroundColor:C.brown}}>
       {/* Logo */}
       <div className="h-16 flex items-center px-5 gap-3 border-b" style={{borderColor:"rgba(214,197,164,0.15)"}}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{backgroundColor:C.gold}}>
+        <button onClick={()=>nav("/")} title="Back to HMS Home"
+          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
+          style={{backgroundColor:C.gold}}>
           <Hotel className="w-4 h-4 text-white"/>
-        </div>
-        <div>
+        </button>
+        <div className="flex-1 min-w-0">
           <div className="text-white font-bold text-sm tracking-widest leading-none">ARYHILLS</div>
-          <div className="text-xs mt-0.5" style={{color:C.beige}}>Hotel Management</div>
+          <div className="text-xs mt-0.5" style={{color:C.beige}}>Front Desk</div>
         </div>
+        <button onClick={()=>nav("/")} title="Back to HMS Home"
+          className="w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 transition-colors flex-shrink-0">
+          <ArrowLeft className="w-3.5 h-3.5" style={{color:C.beige}}/>
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
@@ -311,11 +318,17 @@ function TopBar() {
 }
 
 function PageHdr({title,crumbs,action}:{title:string;crumbs:string[];action?:{label:string;Icon?:any;onClick?:()=>void}}) {
+  const nav = useNavigate();
   return (
     <div className="h-20 flex items-center justify-between px-8 flex-shrink-0 border-b"
       style={{backgroundColor:C.ivory,borderColor:"rgba(78,52,46,0.08)"}}>
       <div>
         <div className="flex items-center gap-1 mb-1">
+          <button onClick={()=>nav("/")} className="flex items-center gap-1 hover:opacity-70 transition-opacity">
+            <Home className="w-3 h-3" style={{color:C.gold}}/>
+            <span className="text-xs font-medium" style={{color:C.gold}}>HMS</span>
+          </button>
+          <ChevronRight className="w-3 h-3" style={{color:C.gray}}/>
           {crumbs.map((c,i)=>(
             <span key={i} className="flex items-center gap-1">
               <span className="text-xs" style={{color:C.gray}}>{c}</span>
