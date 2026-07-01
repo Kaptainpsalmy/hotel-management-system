@@ -12,12 +12,13 @@ export default function TrustBadges() {
       
       <div className="flex items-center gap-2">
         <div className="flex">
-          {[1, 2, 3, 4, 5].map((i) => (
+          {[1, 2, 3, 4].map((i) => (
             <Star key={i} className="w-4 h-4 text-[#B8860B] fill-[#B8860B]" />
           ))}
+          <Star className="w-4 h-4 text-[#B8860B]" />
         </div>
         <span className="text-xs text-[#6C757D]" style={{ fontFamily: 'Inter', fontWeight: 500 }}>
-          4.8/5 Rating
+          4.2/5 Rating
         </span>
       </div>
 

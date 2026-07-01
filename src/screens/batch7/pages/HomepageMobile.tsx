@@ -67,7 +67,7 @@ export default function HomepageMobile() {
                   ))}
                 </div>
                 <span className="text-white text-sm" style={{ fontFamily: 'Inter' }}>
-                  4.8/5 (342)
+                  4.2/5 (247)
                 </span>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function HomepageMobile() {
                 ))}
               </div>
               <span className="text-[#6C757D]" style={{ fontFamily: 'Inter', fontSize: '16px' }}>
-                4.8/5 (342)
+                4.2/5 (247)
               </span>
             </div>
           </div>
@@ -225,11 +225,11 @@ export default function HomepageMobile() {
             <div className="space-y-2 text-sm mb-6">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#D6C5A4]" />
-                <span className="text-[#D6C5A4]">Kajola Street, Imo, Ilesa, Osun State</span>
+                <span className="text-[#D6C5A4]">Old St. John School, Kajola Street, Imo, Ilesa, Osun State</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-[#D6C5A4]" />
-                <span className="text-[#D6C5A4]">+234 801 234 5678</span>
+                <span className="text-[#D6C5A4]">+234 805 030 3270</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#D6C5A4]" />

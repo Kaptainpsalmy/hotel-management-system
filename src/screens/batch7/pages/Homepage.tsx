@@ -61,7 +61,7 @@ export default function Homepage() {
                 ))}
               </div>
               <span className="text-white" style={{ fontFamily: 'Inter', fontSize: '16px' }}>
-                4.8/5 from 342 reviews
+                4.2/5 from 247 reviews
               </span>
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function Homepage() {
                 ))}
               </div>
               <span className="text-[#6C757D]" style={{ fontFamily: 'Inter', fontSize: '18px' }}>
-                4.8/5 from 342 reviews
+                4.2/5 from 247 reviews
               </span>
             </div>
           </div>
@@ -245,7 +245,7 @@ export default function Homepage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-[#D6C5A4]" />
-                    <span className="text-[#D6C5A4]">+234 801 234 5678</span>
+                    <span className="text-[#D6C5A4]">+234 805 030 3270</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-[#D6C5A4]" />

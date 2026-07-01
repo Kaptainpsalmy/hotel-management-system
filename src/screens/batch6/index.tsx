@@ -71,8 +71,8 @@ function TrustRow() {
         SSL Secured
       </span>
       <span className="flex items-center gap-1 text-xs">
-        <StarRow n={5} size={11} />
-        <span className="font-semibold ml-1" style={{ color: B.char }}>4.8</span>
+        <StarRow n={4} size={11} />
+        <span className="font-semibold ml-1" style={{ color: B.char }}>4.2</span>
         <span style={{ color: B.gray }}>&nbsp;(247)</span>
       </span>
       <span
@@ -117,7 +117,7 @@ function WebHeader({ active = "" }: { active?: string }) {
               className="leading-none mt-0.5"
               style={{ color: B.beige, fontSize: "9px", letterSpacing: "0.12em" }}
             >
-              Hotel &amp; Tower · LAGOS
+              Hotel &amp; Tower · Ilesa
             </div>
           </div>
         </div>
@@ -154,14 +154,14 @@ function HeroSearch() {
         <CalendarDays size={14} style={{ color: B.gold }} />
         <div>
           <div className="text-xs" style={{ color: B.gray }}>Check-in</div>
-          <div className="text-sm font-semibold" style={{ color: B.char }}>Jul 15, 2025</div>
+          <div className="text-sm font-semibold" style={{ color: B.char }}>Jul 15, 2026</div>
         </div>
       </div>
       <div className="flex items-center gap-2.5 px-5 py-3 border-r border-gray-200">
         <CalendarDays size={14} style={{ color: B.gold }} />
         <div>
           <div className="text-xs" style={{ color: B.gray }}>Check-out</div>
-          <div className="text-sm font-semibold" style={{ color: B.char }}>Jul 18, 2025</div>
+          <div className="text-sm font-semibold" style={{ color: B.char }}>Jul 18, 2026</div>
         </div>
       </div>
       <div className="flex items-center gap-2.5 px-5 py-3 border-r border-gray-200">
@@ -724,7 +724,7 @@ function EventsPage() {
               { label: "Full Name",  ph: "Mr. Chidi Okafor" },
               { label: "Email",      ph: "chidi@company.ng" },
               { label: "Phone",      ph: "+234 801 234 5678" },
-              { label: "Event Date", ph: "20 Aug 2025" },
+              { label: "Event Date", ph: "15 Aug 2026" },
             ].map(f => (
               <div key={f.label}>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: B.beige }}>
@@ -1160,7 +1160,7 @@ const HOTELS = [
     name: "Aryhills HOTEL & TOWER",
     stars: 5,
     price: "₦48,000",
-    rating: "4.8",
+    rating: "4.2",
     reviews: "247",
     loc: "Imo, Ilesa, Osun State",
     imgId: "1745725427804-4d94df0c5eb7",
@@ -1186,7 +1186,7 @@ const HOTELS = [
     price: "₦55,000",
     rating: "4.4",
     reviews: "892",
-    loc: "Imo, Ilesa, Osun State",
+    loc: "Victoria Island, Lagos",
     imgId: "1742844552699-2fb71ad66a72",
     isAryhills: false,
     tags: ["Beach Access", "Casino", "Spa"],
@@ -1413,16 +1413,16 @@ function GoogleMockup() {
             {
               url: "aryhillshotel.com",
               title: "Aryhills HOTEL & TOWER – Official Site | Best Rate Guarantee",
-              desc: "Book directly with Aryhills Hotel for the best available rate. Luxury accommodation on Imo, Ilesa, Osun State. Free cancellation available on most rooms.",
+              desc: "Book directly with Aryhills Hotel for the best available rate. Luxury accommodation in Imo, Ilesa, Osun State. Free cancellation available on most rooms.",
             },
             {
-              url: "booking.com › hotels › lagos",
+              url: "booking.com › hotels › ilesa-osun-state",
               title: "Ilesa hotels – Best Deals from ₦35,000/night – Booking.com",
               desc: "Compare prices on 400+ Ilesa hotels. Secure booking with no hidden fees. Flexible dates & free cancellation on most rooms.",
             },
             {
-              url: "tripadvisor.com › hotels-lagos-nigeria",
-              title: "Best Hotels in Ilesa 2025 – Reviews & Deals – TripAdvisor",
+              url: "tripadvisor.com › hotels-ilesa-nigeria",
+              title: "Best Hotels in Ilesa 2026 – Reviews & Deals – TripAdvisor",
               desc: "See traveller reviews, candid photos, and great deals for Ilesa hotels. Aryhills Hotel ranked #1 of 127 hotels in Ilesa, Osun State.",
             },
           ].map((r, i) => (
@@ -1778,11 +1778,11 @@ const REVIEWS = [
 const ROOM_FILTERS = ["All Rooms", "Deluxe Room", "Suite", "Executive Suite", "Honeymoon Suite"];
 
 const RATING_BREAKDOWN = [
-  { label: "Cleanliness", score: 4.9 },
-  { label: "Service",     score: 4.8 },
-  { label: "Location",    score: 4.7 },
-  { label: "Value",       score: 4.6 },
-  { label: "Amenities",   score: 4.8 },
+  { label: "Cleanliness", score: 4.4 },
+  { label: "Service",     score: 4.3 },
+  { label: "Location",    score: 4.0 },
+  { label: "Value",       score: 3.9 },
+  { label: "Amenities",   score: 4.2 },
 ];
 
 function ReviewsPage() {
@@ -1834,8 +1834,8 @@ function ReviewsPage() {
             className="flex flex-col items-center justify-center col-span-1 border-r"
             style={{ borderColor: B.beige }}
           >
-            <div className="text-6xl font-bold mb-1" style={{ color: B.gold }}>4.8</div>
-            <StarRow n={5} size={20} />
+            <div className="text-6xl font-bold mb-1" style={{ color: B.gold }}>4.2</div>
+            <StarRow n={4} size={20} />
             <p className="text-sm mt-2" style={{ color: B.gray }}>247 Verified Reviews</p>
             <div
               className="flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-full"
@@ -1959,8 +1959,8 @@ function ReviewsPage() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold" style={{ color: B.char }}>4.8</span>
-              <StarRow n={5} size={13} />
+              <span className="text-lg font-bold" style={{ color: B.char }}>4.2</span>
+              <StarRow n={4} size={13} />
               <span className="text-xs" style={{ color: B.gray }}>193 Google reviews</span>
             </div>
           </div>

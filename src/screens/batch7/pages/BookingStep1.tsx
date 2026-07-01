@@ -34,7 +34,7 @@ export default function BookingStep1() {
     },
   ];
 
-  const nights = 2;
+  const nights = Math.max(1, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86_400_000));
   const roomPrice = selectedRoom !== null ? rooms[selectedRoom].price : 0;
   const breakfastPrice = breakfast ? 5000 : 0;
   const transferPrice = airportTransfer ? 15000 : 0;

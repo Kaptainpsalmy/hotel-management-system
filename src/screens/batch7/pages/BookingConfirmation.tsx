@@ -251,9 +251,9 @@ export default function BookingConfirmation() {
               Need Help? We're Here for You
             </h3>
             <div className="flex items-center justify-center gap-8">
-              <a href="tel:+2348012345678" className="flex items-center gap-2 text-[#6C757D] hover:text-[#B8860B] transition-colors">
+              <a href="tel:+2348050303270" className="flex items-center gap-2 text-[#6C757D] hover:text-[#B8860B] transition-colors">
                 <Phone className="w-5 h-5" />
-                <span style={{ fontFamily: 'Inter', fontSize: '14px' }}>+234 801 234 5678</span>
+                <span style={{ fontFamily: 'Inter', fontSize: '14px' }}>+234 805 030 3270</span>
               </a>
               <a href="mailto:info@aryhillshotel.com" className="flex items-center gap-2 text-[#6C757D] hover:text-[#B8860B] transition-colors">
                 <Mail className="w-5 h-5" />

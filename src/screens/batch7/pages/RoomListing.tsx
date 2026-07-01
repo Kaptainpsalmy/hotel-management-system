@@ -170,7 +170,7 @@ export default function RoomListing() {
             </p>
             <div className="flex items-center justify-center gap-4">
               <a
-                href="tel:+2348012345678"
+                href="tel:+2348050303270"
                 className="py-3 px-8 bg-[#B8860B] text-white rounded-lg hover:bg-[#9A7209] transition-colors"
                 style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px' }}
               >
