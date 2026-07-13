@@ -145,6 +145,21 @@ const MODULES: Module[] = [
       { label: "Booking Confirmation (QR pass)" },
     ],
   },
+  {
+    id: "M9",
+    title: "Staff & HR",
+    subtitle: "Announcements, clocking, payroll & wallet",
+    route: "/staff",
+    icon: "👥",
+    screens: [
+      { label: "HR Dashboard" },
+      { label: "Announcement Board (post & filter)" },
+      { label: "Employee Clocking (clock in/out)" },
+      { label: "Salary Processing (all staff)" },
+      { label: "Salary Slip (printable payslip)" },
+      { label: "Employee Wallet (balance & history)" },
+    ],
+  },
 ];
 
 export default function HomeIndex() {
@@ -162,7 +177,7 @@ export default function HomeIndex() {
             </span>
           </div>
           <span style={{ color: C.beige, fontSize: 12 }}>
-            Hotel Management System — 50 Screens
+            Hotel Management System — 56 Screens
           </span>
         </div>
       </header>
@@ -177,7 +192,7 @@ export default function HomeIndex() {
             Aryhills HMS — Unified System
           </h1>
           <p style={{ color: C.beige, fontSize: 15, lineHeight: 1.6, maxWidth: 560, margin: "0 auto" }}>
-            8 modules · 50 screens · Full hotel operations from check-in to analytics.
+            9 modules · 56 screens · Full hotel operations from check-in to analytics.
             Select any module below to enter.
           </p>
           <div style={{ marginTop: 24, display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>

@@ -19,6 +19,7 @@ import BookingStep1 from "./screens/batch7/pages/BookingStep1";
 import BookingStep2 from "./screens/batch7/pages/BookingStep2";
 import BookingConfirmation from "./screens/batch7/pages/BookingConfirmation";
 import OrderingPlatformApp from "./screens/batch8";
+import StaffHRApp from "./screens/batch9";
 
 export const router = createBrowserRouter([
   { path: "/", Component: HomeIndex },
@@ -62,4 +63,7 @@ export const router = createBrowserRouter([
 
   // ── Module 8: Ordering & Services Platform ────────────────────────────────
   { path: "/ordering", Component: OrderingPlatformApp },
+
+  // ── Module 9: Staff & HR (Announcements, Clocking, Salary, Wallet) ────────
+  { path: "/staff", Component: StaffHRApp },
 ]);
