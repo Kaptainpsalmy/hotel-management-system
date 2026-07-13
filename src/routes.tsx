@@ -18,6 +18,7 @@ import RoomListing from "./screens/batch7/pages/RoomListing";
 import BookingStep1 from "./screens/batch7/pages/BookingStep1";
 import BookingStep2 from "./screens/batch7/pages/BookingStep2";
 import BookingConfirmation from "./screens/batch7/pages/BookingConfirmation";
+import OrderingPlatformApp from "./screens/batch8";
 
 export const router = createBrowserRouter([
   { path: "/", Component: HomeIndex },
@@ -58,4 +59,7 @@ export const router = createBrowserRouter([
   { path: "/booking/step1", Component: BookingStep1 },
   { path: "/booking/step2", Component: BookingStep2 },
   { path: "/booking/confirmation", Component: BookingConfirmation },
+
+  // ── Module 8: Ordering & Services Platform ────────────────────────────────
+  { path: "/ordering", Component: OrderingPlatformApp },
 ]);

@@ -127,6 +127,24 @@ const MODULES: Module[] = [
       { label: "Booking Confirmation" },
     ],
   },
+  {
+    id: "M8",
+    title: "Ordering & Services",
+    subtitle: "Food, Gym, Pool, Spa — order online",
+    route: "/ordering",
+    icon: "🍽️",
+    screens: [
+      { label: "Services Home (all 8 tiles)" },
+      { label: "Food & Drinks Menu + Cart" },
+      { label: "Item Detail Modal" },
+      { label: "Checkout (delivery vs pickup)" },
+      { label: "Order Tracking (live status)" },
+      { label: "Gym Booking (slots + add-ons)" },
+      { label: "Pool Booking (capacity + guests)" },
+      { label: "Spa Booking (treatment + therapist)" },
+      { label: "Booking Confirmation (QR pass)" },
+    ],
+  },
 ];
 
 export default function HomeIndex() {
@@ -144,7 +162,7 @@ export default function HomeIndex() {
             </span>
           </div>
           <span style={{ color: C.beige, fontSize: 12 }}>
-            Hotel Management System — 41 Screens
+            Hotel Management System — 50 Screens
           </span>
         </div>
       </header>
@@ -159,7 +177,7 @@ export default function HomeIndex() {
             Aryhills HMS — Unified System
           </h1>
           <p style={{ color: C.beige, fontSize: 15, lineHeight: 1.6, maxWidth: 560, margin: "0 auto" }}>
-            7 modules · 41 screens · Full hotel operations from check-in to analytics.
+            8 modules · 50 screens · Full hotel operations from check-in to analytics.
             Select any module below to enter.
           </p>
           <div style={{ marginTop: 24, display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
